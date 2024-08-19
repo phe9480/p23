@@ -54,7 +54,10 @@ simu.ph23data(
 }
 \description{
 This functions simulates trials that have multiple dose arms at Stage 1 and the best dose is always selected after Stage 1 and perform multiple analyses at Stage 2
-The function returns multiple datasets including at end of Stage 1 (all dose arms) and at each of analysis at Stage 2
+The function returns multiple datasets including at end of Stage 1 (all dose arms) and at each of analysis at Stage 2.
+Features include: (1) Stage 1 and Stage 2 have separate enrollment curves; (2) Allow enrollment gap between Stage 1 and Stage 2;
+(3) Dose selection at stage 1 based on best performance in z statistic. (4) Stage 2 analyses are based on prespecified target events. (5) The function
+also returns the weights for combination p value approach in the next step and the weights are sqrt of information fractions.
 }
 \examples{
 #Example (1): Stage 1: 4 arms; 3 dose levels; each arm 50 patients.
@@ -69,15 +72,16 @@ The function returns multiple datasets including at end of Stage 1 (all dose arm
 bd.z = actualBounds(planned.events=c(300, 380), act.events=c(300, 380), sf=gsDesign::sfLDOF, alpha=0.025)$actual.z
 #2.268527 2.022098
 
-o = simu.ph23data(nSim=10, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m = c(9,9, 9, 9), 
+o = simu.ph23data(nSim=10000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m = c(9,9, 9, 9), 
 Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 DCO1 = 16, Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 enrollment.hold=4, targetEvents2 = c(300, 380))
 
+#Perform analysis at IA and FA using combination p method, with simes approach for multiplcity control at Stage 1 and closed testing procedure for controlling FWER
 IA = ph23.comb.p(z1=o$z1,  z2 = o$z2[,1], bd.z=bd.z[1], w=o$w[,1])
 FA = ph23.comb.p(z1=o$z1,  z2 = o$z2[,2], bd.z=bd.z[2], w=o$w[,2])
 
-#power calculation
+#power calculation using the standard group sequential boundaries
 gsd.power(z = cbind(IA$comb.z, FA$comb.z), bd.z=bd.z)
 
 }
