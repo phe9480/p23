@@ -16,6 +16,9 @@
 #' @param A2 Enrollment period for Stage 2
 #' @param Lambda2 Enrollment distribution function (CDF) for stage 2.
 #' @param targetEvents2 Planned target number of events for Stage 2. Either targetEvents2 must be provided. 
+#' @param method "Independent Incremental", "Disjoint Subjects". Currently, only "Independent Incremental" method is implemented.
+#' @param extended.followup TRUE or FALSE. Default FALSE. Extended followup means Stage 1 subjects are followed up until first analysis in Stage 1 for the endpoint. 
+#' The multiplicity adjustment is performed according to the extended followup data up to 1st analysis. This option is applicable to "Disjoined Subjects" method. Currently, not implemented yet.
 #' 
 #' @return 
 #' \describe{
@@ -24,6 +27,7 @@
 #' \item{z2}{Incremental z statistic at each anaysis at Stage 2, calculated from dose selection to the analysis}
 #' \item{w}{Weight, calculated as sqrt (total events for selected dose + control at stage 1 / targetEvents at each analysis at Stage 2 for the selected dose + control combining stage 1 and stage 2 patients.)}
 #' \item{selected.dose}{Selected dose}
+#' \item{example.data}{A simulated dataset example}
 #' }
 #' 
 #' @examples
@@ -56,8 +60,9 @@
 simu.ph23data = function(nSim=1000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m = c(9, 11, 13, 8), 
                           Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
                           DCO1 = 16, Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
-                          enrollment.hold=4, targetEvents2 = c(300, 380)){
+                          enrollment.hold=4, targetEvents2 = c(300, 380), method = "Independent Incremental", extended.followup=FALSE){
    
+  if (method == "Independent Incremental"){
    ######################
    #Stage 1
    ######################
@@ -120,6 +125,8 @@ simu.ph23data = function(nSim=1000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m 
      #6. Combine Stage 1 and Stage 2 data
      dat.s = rbind(dat1[[s[i]]], dat1[[n.arms]])
      dat.s = subset(dat.s, select = -c(calendarCutoff, survTimeCut, cnsrCut))
+     dat.s$stage = 1 #flag this is stage 2 data
+     
      dat2d = as.data.frame(cbind(dat2c$enterTime, dat2c$calendarTime, dat2c$survTime, dat2c$cnsr, dat2c$group))
      dat2d = dplyr::rename(dat2d,
                          enterTime ="V1",
@@ -127,6 +134,7 @@ simu.ph23data = function(nSim=1000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m 
                          survTime="V3",
                          cnsr="V4",
                          group="V5")
+     dat2d$stage = 2 #flag this is stage 2 data
    
      dat.comb0 = rbind(dat.s, dat2d)
      
@@ -143,6 +151,9 @@ simu.ph23data = function(nSim=1000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m 
        z2[i, ii] = (z.c[i, ii] - sqrt(frac)*z1[i, s[i]])/sqrt(1-frac)
        w[i, ii] = sqrt(frac)
      }
+    }
+  } else if (method == "Disjoint Subjects"){
+     
    }
    o=list()
    o$z1 = z1
@@ -150,6 +161,7 @@ simu.ph23data = function(nSim=1000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m 
    o$z.c = z.c
    o$w = w
    o$selected.dose = s
+   o$example.data = dat.comb
    
    return(o)
  }

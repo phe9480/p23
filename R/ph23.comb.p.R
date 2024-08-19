@@ -10,6 +10,7 @@
 #' @param p2 stage 2 p value. p2 = 1-pnorm(z2). Either z2 or p2 must be provided.
 #' @param w weight for stage 1 z statistic. If w is a single number, all trials use the same weight in p value combination.
 #' @param bd.z rejection boundary in z scale for the combination test
+#' @param method "simes", "Dunnett". Currently only "simes" method is implemented.
 #' 
 #' @return Returned values include:
 #' \describe{
@@ -49,7 +50,7 @@
 #' 
 #' @export 
 #' 
-ph23.comb.p = function(z1, z2, p1=NULL, p2=NULL, bd.z=1.96, w=0.2){
+ph23.comb.p = function(z1, z2, p1=NULL, p2=NULL, bd.z=1.96, w=0.2, method="simes"){
   n.doses = ncol(z1) #only works for up to 3 dose levels in this program.
   N = nrow(z1) #number of trials
   
