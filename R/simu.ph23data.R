@@ -36,7 +36,7 @@
 #' bd.z = actualBounds(planned.events=c(300, 380), act.events=c(300, 380), sf=gsDesign::sfLDOF, alpha=0.025)$actual.z
 #' #2.268527 2.022098
 #' 
-#' o = simu.ph23data(nSim=10000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m = c(9,9, 9, 9), 
+#' o = simu.ph23data(nSim=10, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m = c(9,9, 9, 9), 
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 #' DCO1 = 16, Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 #' enrollment.hold=4, targetEvents2 = c(300, 380))
