@@ -4,7 +4,15 @@
 \alias{ph23.comb.p}
 \title{p value combination approach using closed testing procedure (only up to 3 dose levels)}
 \usage{
-ph23.comb.p(z1, z2, p1 = NULL, p2 = NULL, bd.z = 1.96, w = 0.2)
+ph23.comb.p(
+  z1,
+  z2,
+  p1 = NULL,
+  p2 = NULL,
+  bd.z = 1.96,
+  w = 0.2,
+  method = "simes"
+)
 }
 \arguments{
 \item{z1}{A matrix of z values at stage 1. z1 has dimensions of (ntrials, ndoses). ndoses must be 2 or 3.}
@@ -18,6 +26,8 @@ ph23.comb.p(z1, z2, p1 = NULL, p2 = NULL, bd.z = 1.96, w = 0.2)
 \item{bd.z}{rejection boundary in z scale for the combination test}
 
 \item{w}{weight for stage 1 z statistic. If w is a single number, all trials use the same weight in p value combination.}
+
+\item{method}{"simes", "Dunnett". Currently only "simes" method is implemented.}
 }
 \value{
 Returned values include:

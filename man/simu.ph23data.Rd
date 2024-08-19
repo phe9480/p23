@@ -19,7 +19,9 @@ simu.ph23data(
  },
   A2 = 12,
   enrollment.hold = 4,
-  targetEvents2 = c(300, 380)
+  targetEvents2 = c(300, 380),
+  method = "Independent Incremental",
+  extended.followup = FALSE
 )
 }
 \arguments{
@@ -42,6 +44,11 @@ simu.ph23data(
 \item{enrollment.hold}{Holding period in months after DCO1 of Stage 1 prior to enrollment of Stage 2 patients. 0 means seamless enrollment.}
 
 \item{targetEvents2}{Planned target number of events for Stage 2. Either targetEvents2 must be provided.}
+
+\item{method}{"Independent Incremental", "Disjoint Subjects". Currently, only "Independent Incremental" method is implemented.}
+
+\item{extended.followup}{TRUE or FALSE. Default FALSE. Extended followup means Stage 1 subjects are followed up until first analysis in Stage 1 for the endpoint.
+The multiplicity adjustment is performed according to the extended followup data up to 1st analysis. This option is applicable to "Disjoined Subjects" method. Currently, not implemented yet.}
 }
 \value{
 \describe{
@@ -50,6 +57,7 @@ simu.ph23data(
 \item{z2}{Incremental z statistic at each anaysis at Stage 2, calculated from dose selection to the analysis}
 \item{w}{Weight, calculated as sqrt (total events for selected dose + control at stage 1 / targetEvents at each analysis at Stage 2 for the selected dose + control combining stage 1 and stage 2 patients.)}
 \item{selected.dose}{Selected dose}
+\item{example.data}{A simulated dataset example}
 }
 }
 \description{
