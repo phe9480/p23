@@ -4,12 +4,16 @@
 \alias{ph23.comb.p}
 \title{p value combination approach using closed testing procedure (only up to 3 dose levels)}
 \usage{
-ph23.comb.p(z1, z2, bd.z = 1.96, w = 0.2)
+ph23.comb.p(z1, z2, p1 = NULL, p2 = NULL, bd.z = 1.96, w = 0.2)
 }
 \arguments{
-\item{z1}{A matrix of z values at stage 1. z1 has dimensions of \link{ntrials, ndoses}. ndoses must be 2 or 3.}
+\item{z1}{A matrix of z values at stage 1. z1 has dimensions of (ntrials, ndoses). ndoses must be 2 or 3.}
 
 \item{z2}{stage 2 z test statistic. a vector of length = ntrials. length(z2) must be equal to nrow(z1)}
+
+\item{p1}{A matrix of p values at stage 1. p1 = 1-pnorm(z1). either z1 or p1 must be provided.}
+
+\item{p2}{stage 2 p value. p2 = 1-pnorm(z2). Either z2 or p2 must be provided.}
 
 \item{bd.z}{rejection boundary in z scale for the combination test}
 
@@ -25,7 +29,8 @@ Returned values include:
 \item{unadj.zs}{unadjusted z value for selected dose s}
 \item{adj.zs}{adjusted z value for selected dose s in Stage 1 after closed testing procedure using Simes method}
 \item{comb.z}{Combination z value combining stage 1 and stage 2}
-\item{RejPct}{Percentage of rejection, appliable for simulations when z1 has a large number of rows (trials)}
+\item{RejPct}{Percentage of rejection, applicable for simulations when z1 has a large number of rows (trials)}
+\item{Selection}{Probability of selection of each dose, applicable for simulations when z1 has a large number of rows (trials)}
 }
 }
 \description{

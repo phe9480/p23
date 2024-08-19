@@ -2,22 +2,24 @@
 % Please edit documentation in R/simu.ph23data.R
 \name{simu.ph23data}
 \alias{simu.ph23data}
-\title{Simulate randomized and controlled phase 2/3 dose optimization trial for survival endpoint\link{DO NOT USE}}
+\title{Simulate randomized and controlled phase 2/3 dose optimization trial for survival endpoint}
 \usage{
 simu.ph23data(
-  n1 = c(50, 50),
+  nSim = 1000,
+  n1 = c(50, 50, 50, 50),
   n2 = c(200, 200),
   m = c(9, 11, 13, 8),
   Lambda1 = function(t) {
      (t/12) * as.numeric(t <= 12) + as.numeric(t > 12)
  },
   A1 = 12,
+  DCO1 = 16,
   Lambda2 = function(t) {
      (t/12) * as.numeric(t <= 12) + as.numeric(t > 12)
  },
   A2 = 12,
-  DCO1 = 16,
-  targetEvents = c(300, 380)
+  enrollment.hold = 4,
+  targetEvents2 = c(300, 380)
 )
 }
 \arguments{
@@ -29,31 +31,25 @@ simu.ph23data(
 
 \item{Lambda1}{Enrollment distribution function (CDF) for stage 1.}
 
-\item{Lambda2}{Enrollment distribution function (CDF) for stage 2.}
+\item{A1}{Enrollment period for Stage 1}
 
 \item{DCO1}{Data cutoff date for Stage 1}
 
-\item{targetEvents}{Planned target number of events for Stage 2. Either targetEvents or DCO must be provided.}
+\item{Lambda2}{Enrollment distribution function (CDF) for stage 2.}
+
+\item{A2}{Enrollment period for Stage 2}
+
+\item{enrollment.hold}{Holding period in months after DCO1 of Stage 1 prior to enrollment of Stage 2 patients. 0 means seamless enrollment.}
+
+\item{targetEvents2}{Planned target number of events for Stage 2. Either targetEvents2 must be provided.}
 }
 \value{
-Datasets including data1: Stage 1 data with multiple dose arms; data2: Stage 2 data of the selected dose arm and control arm with data2[\link{j}] for jth analysis. Each dataset includes variables
 \describe{
-\item{treatment}{treatment group with values of "control", "dose 1", "dose 2", ...}
-\item{enterTime}{Time of randomization in calendar time}
-\item{calendarTime}{the time when event/censoring occurred in calendar time}
-\item{survTime}{Survival time for analysis, = calendarTime - enterTime}
-\item{cnsr}{censor status (0=event; 1=censor) before administrative censoring due to data cut}
-\item{calendarCutOff}{Data CutOff Time (DCO);}
-\item{survTimeCut}{Survival time after cut}
-\item{cnsrCut}{Censor status after cut}
-}
-The function also returns a dataframe decision with variables:
-\describe{
-\item{z}{log rank z value for each dose compared to control using stage 1 data}
-\item{p}{log rank p value for each dose compared to control using stage 1 data}
-\item{adj.p}{adjusted log rank p value for selected dose arm}
-\item{adj.z}{adjusted log rank p value for selected dose arm}
-\item{selected}{Selected dose arm, applicable for data2 only}
+\item{z1}{Stage 1 z values for each dose}
+\item{z.c}{z value for each analysis at Stage 2 for the selected dose}
+\item{z2}{Incremental z statistic at each anaysis at Stage 2, calculated from dose selection to the analysis}
+\item{w}{Weight, calculated as sqrt (total events for selected dose + control at stage 1 / targetEvents at each analysis at Stage 2 for the selected dose + control combining stage 1 and stage 2 patients.)}
+\item{selected.dose}{Selected dose}
 }
 }
 \description{
@@ -61,9 +57,27 @@ This functions simulates trials that have multiple dose arms at Stage 1 and the 
 The function returns multiple datasets including at end of Stage 1 (all dose arms) and at each of analysis at Stage 2
 }
 \examples{
-#Example (1): 
+#Example (1): Stage 1: 4 arms; 3 dose levels; each arm 50 patients.
+#Stage 2: additional 200 patients per arm will be enrolled at stage 2
+#medians for the 4 arms: 9, 11, 13 and control = 8 months
+#Enrollment: 12 months uniform in stage 1; 12 months uniform in stage 2
+#Holding period: 4 months between stage 1 and 2
+#Dose selection will be based on data cut at 16 months
+#Stage 2 has 2 planned analyses at 300 and 380 events respectively.
 
-p = c(0.01, 0.02, 0.03, 0.013)
-simes(p)
+#Using O'Brien Fleming boundary, the rejection boundaries are: 
+bd.z = actualBounds(planned.events=c(300, 380), act.events=c(300, 380), sf=gsDesign::sfLDOF, alpha=0.025)$actual.z
+#2.268527 2.022098
+
+o = simu.ph23data(nSim=1000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m = c(9, 11, 13, 8), 
+Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+DCO1 = 16, Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+enrollment.hold=4, targetEvents2 = c(300, 380))
+
+IA = ph23.comb.p(z1=o$z1,  z2 = o$z2[,1], bd.z=bd.z[1], w=o$w[,1])
+FA = ph23.comb.p(z1=o$z1,  z2 = o$z2[,2], bd.z=bd.z[2], w=o$w[,2])
+
+#power calculation
+gsd.power(z = cbind(IA$comb.z, FA$comb.z), bd.z=bd.z)
 
 }
