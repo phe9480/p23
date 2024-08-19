@@ -7,7 +7,7 @@ Instructions to download and install
 
 install.packages("devtools")
 
-#Install nphRshiny
+#Install package p23
 
 devtools::install_github("phe9480/p23")
 
