@@ -15,7 +15,7 @@
 #' @export 
 simes = function(p) {
     r = rank(p)
-    ans = min(length(p) * p/r)
+    ans = min(min(length(p) * p/r), 1)
     return(ans)
 }
 

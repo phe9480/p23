@@ -1,4 +1,4 @@
-#' Simulate randomized and controlled phase 2/3 dose optimization trial for survival endpoint[DO NOT USE]
+#' Simulate randomized and controlled phase 2/3 dose optimization trial for survival endpoint
 #'
 #' This functions simulates trials that have multiple dose arms at Stage 1 and the best dose is always selected after Stage 1 and perform multiple analyses at Stage 2
 #' The function returns multiple datasets including at end of Stage 1 (all dose arms) and at each of analysis at Stage 2
@@ -6,98 +6,147 @@
 #' @param n1 Sample size of (dose arm, control arm) at Stage 1. length(n1) must be 2.
 #' @param n2 Sample size of the (selected dose arm, control arm). length(n2) must be 2.
 #' @param m Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)
-#' @param Lambda2 Enrollment distribution function (CDF) for stage 2.
+#' @param A1 Enrollment period for Stage 1
 #' @param Lambda1 Enrollment distribution function (CDF) for stage 1.
 #' @param DCO1 Data cutoff date for Stage 1
-#' @param targetEvents Planned target number of events for Stage 2. Either targetEvents or DCO must be provided. 
+#' @param enrollment.hold Holding period in months after DCO1 of Stage 1 prior to enrollment of Stage 2 patients. 0 means seamless enrollment.
+#' @param A2 Enrollment period for Stage 2
+#' @param Lambda2 Enrollment distribution function (CDF) for stage 2.
+#' @param targetEvents2 Planned target number of events for Stage 2. Either targetEvents2 must be provided. 
 #' 
-#' @return Datasets including data1: Stage 1 data with multiple dose arms; data2: Stage 2 data of the selected dose arm and control arm with data2[[j]] for jth analysis. Each dataset includes variables
+#' @return 
 #' \describe{
-#' \item{treatment}{treatment group with values of "control", "dose 1", "dose 2", ...}
-#' \item{enterTime}{Time of randomization in calendar time}
-#' \item{calendarTime}{the time when event/censoring occurred in calendar time}
-#' \item{survTime}{Survival time for analysis, = calendarTime - enterTime}
-#' \item{cnsr}{censor status (0=event; 1=censor) before administrative censoring due to data cut}
-#' \item{calendarCutOff}{Data CutOff Time (DCO);}
-#' \item{survTimeCut}{Survival time after cut}
-#' \item{cnsrCut}{Censor status after cut}
-#' }
-#' The function also returns a dataframe decision with variables: 
-#' \describe{
-#' \item{z}{log rank z value for each dose compared to control using stage 1 data}
-#' \item{p}{log rank p value for each dose compared to control using stage 1 data}
-#' \item{adj.p}{adjusted log rank p value for selected dose arm}
-#' \item{adj.z}{adjusted log rank p value for selected dose arm}
-#' \item{selected}{Selected dose arm, applicable for data2 only}
+#' \item{z1}{Stage 1 z values for each dose}
+#' \item{z.c}{z value for each analysis at Stage 2 for the selected dose}
+#' \item{z2}{Incremental z statistic at each anaysis at Stage 2, calculated from dose selection to the analysis}
+#' \item{w}{Weight, calculated as sqrt (total events for selected dose + control at stage 1 / targetEvents at each analysis at Stage 2 for the selected dose + control combining stage 1 and stage 2 patients.)}
+#' \item{selected.dose}{Selected dose}
 #' }
 #' 
 #' @examples
-#' #Example (1): 
+#' #Example (1): Stage 1: 4 arms; 3 dose levels; each arm 50 patients.
+#' #Stage 2: additional 200 patients per arm will be enrolled at stage 2
+#' #medians for the 4 arms: 9, 11, 13 and control = 8 months
+#' #Enrollment: 12 months uniform in stage 1; 12 months uniform in stage 2
+#' #Holding period: 4 months between stage 1 and 2
+#' #Dose selection will be based on data cut at 16 months
+#' #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
+#'
+#' #Using O'Brien Fleming boundary, the rejection boundaries are: 
+#' bd.z = actualBounds(planned.events=c(300, 380), act.events=c(300, 380), sf=gsDesign::sfLDOF, alpha=0.025)$actual.z
+#' #2.268527 2.022098
 #' 
-#' p = c(0.01, 0.02, 0.03, 0.013)
-#' simes(p)
+#' o = simu.ph23data(nSim=1000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m = c(9, 11, 13, 8), 
+#' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+#' DCO1 = 16, Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+#' enrollment.hold=4, targetEvents2 = c(300, 380))
+#' 
+#' IA = ph23.comb.p(z1=o$z1,  z2 = o$z2[,1], bd.z=bd.z[1], w=o$w[,1])
+#' FA = ph23.comb.p(z1=o$z1,  z2 = o$z2[,2], bd.z=bd.z[2], w=o$w[,2])
+#' 
+#' #power calculation
+#' gsd.power(z = cbind(IA$comb.z, FA$comb.z), bd.z=bd.z)
 #' 
 #' @export 
 #' 
- simu.ph23data = function(n1 = c(50, 50), n2 = c(200, 200), m = c(9, 11, 13, 8), 
+ simu.ph23data = function(nSim=1000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m = c(9, 11, 13, 8), 
                           Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
-                          Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
-                          DCO1 = 16, targetEvents = c(300, 380)){
- 
-   #number of analyses at Stage 2
-   L = length(targetEvents)
+                          DCO1 = 16, Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+                          enrollment.hold=4, targetEvents2 = c(300, 380)){
    
-   #(1) Generate exponential survival data
-   n.doses = length(m) - 1
-   m0 = m[length(m)] #control arm median
+   ######################
+   #Stage 1
+   ######################
    
-   #All dose arms have the same n
-   t = matrix(NA, nrow=n1[1]+n2[1], ncol=n.doses) #dose arms
-   t0 = genSurv(dist = "exponential", n = n1[2]+n2[2], lam=log(2)/m0)
+   n.arms = length(n1)
+   z1 = e1 = matrix(NA, nrow=nSim, ncol=n.arms-1)
    
-   for (i in 1:n.doses){
-     t[,i] = genSurv(dist = "exponential", n = n1[1]+n2[1], lam=log(2)/m[i])
+   #e1: total number of events for by DCO1 for each dose arm + control
+   s = rep(NA, nSim) #selected dose level
+   z.c = matrix(NA, nrow=nSim, ncol=length(targetEvents2)) #z value at each of Stage 2 analyses using combined data
+   z2  = matrix(NA, nrow=nSim, ncol=length(targetEvents2)) # incremental z value from stage 2 compared to Stage 1
+   w = matrix(NA, nrow=nSim, ncol=length(targetEvents2)) #weights as sqrt(information fraction) = sqrt(events at dose selection / events at each stage 2 analysis) at each analysis.
+
+   for (i in 1:nSim){
+     dat1 = list(NULL) #control arm is the last one
+     
+     #1. simulate Stage 1 survival data
+     for (j in 1:n.arms){
+       dat1[[j]] = simu.single.arm(n=n1[j], m=m[j], Lambda=Lambda1, A=A1, drop=0, DCO=DCO1)[[1]]
+       dat1[[j]]$group = j
+       if (j == n.arms){dat1[[j]]$group = 0}
+     }
+     
+     #2. Calculate z statistics and e
+     for (j in 1:(n.arms-1)){
+       datj = rbind(dat1[[j]], dat1[[n.arms]])
+       z1[i, j] = logrank.one.sided(time=datj$survTimeCut, cnsr=datj$cnsrCut, group=datj$group)$z
+       e1[i, j] = sum(1-datj$cnsrCut)
+     }
+     
+     #3. Dose selection
+     tmp = sort(z1[i,], index.return = TRUE)
+     s[i] = tmp$ix[n.arms-1]
+   
+     #cbind(z1, s)
+   
+     ######################
+     #Stage 2
+     ######################
+     #After decision is made in Stage 1 for dose selection, then enroll Stage 2 patients.
+     #If there is enrollment hold
+      
+     #4. simulate Stage 2 data (control and selected dose s)
+     dat20 = simu.single.arm(n=n2[2], m=m[n.arms], Lambda=Lambda2, A=A2, drop=0, DCO=Inf)[[1]]
+     dat2s = simu.single.arm(n=n2[1], m=m[s[i]], Lambda=Lambda2, A=A2, drop=0, DCO=Inf)[[1]]
+     dat20$group=0; dat2s$group = s[i]
+
+     #5. Enrollment gap
+     dat2a = rbind(dat20, dat2s)
+     dat2a$enrollment.hold = enrollment.hold
+   
+     #Rename variables
+     dat2b <- subset(dat2a, select = -c(calendarCutoff, survTimeCut, cnsrCut))
+     dat2c = dplyr::rename(dat2b,
+                 enterTime.original ="enterTime",
+                 calendarTime.original ="calendarTime")
+     dat2c$enterTime = dat2c$enterTime.original + enrollment.hold + A1
+     dat2c$calendarTime = dat2c$enterTime + dat2c$survTime
+   
+     #6. Combine Stage 1 and Stage 2 data
+     dat.s = rbind(dat1[[s[i]]], dat1[[n.arms]])
+     dat.s = subset(dat.s, select = -c(calendarCutoff, survTimeCut, cnsrCut))
+     dat2d = as.data.frame(cbind(dat2c$enterTime, dat2c$calendarTime, dat2c$survTime, dat2c$cnsr, dat2c$group))
+     dat2d = dplyr::rename(dat2d,
+                         enterTime ="V1",
+                         calendarTime ="V2",
+                         survTime="V3",
+                         cnsr="V4",
+                         group="V5")
+   
+     dat.comb0 = rbind(dat.s, dat2d)
+     
+     #7. Data cut according to K analyses in stage 2
+   
+     K = length(targetEvents) #K analyses in Stage 2
+   
+     for (ii in 1:K){
+       dat.comb = f.dataCut(data=dat.comb0, targetEvents=targetEvents2[ii])
+       
+       #Calculate z statistics for logrank test combining Stage 1 and stage 2
+       z.c[i, ii] = logrank.one.sided(time=dat.comb$survTimeCut, cnsr=dat.comb$cnsrCut, group=dat.comb$group)$z
+       frac = e1[i, s[i]]/targetEvents2[ii]     
+       z2[i, ii] = (z.c[i, ii] - sqrt(frac)*z1[i, s[i]])/sqrt(1-frac)
+       w[i, ii] = sqrt(frac)
+     }
    }
+   o=list()
+   o$z1 = z1
+   o$z2 = z2
+   o$z.c = z.c
+   o$w = w
+   o$selected.dose = s
    
-   #(2) Enrollment data
-   r = (n1[1]+n2[1]) / (n1[2]+n2[2])
-   
-   nEachMonth1 = f.nEachMonth(N=sum(n1), A=12, w=NULL, r=r, Lambda=Lambda1)
-   
-   out = list(NULL)
-   for (k in 2:(L+1)){out = c(out, list(NULL))}
-   
-   ############################
-   #EnterTime, CalendarTime
-   ############################
-   enterTime = function(nPerMonth, A){
-     enterT = rep(NA, n1[2])
-     enterT[1:nEachMonth$n0[1]] = runif(nEachMonth$n0[1], min=0, max=1)
-     if (A1 > 1) {for (m in 2:A1){
-       LL = sum(nEachMonth$n0[1:(m-1)])+1
-       UU = sum(nEachMonth$n0[1:m])
-       enterTime0[LL:UU] = runif(nEachMonth$n0[m], min=m-1, max=m)
-     }}
-   }
-   enterTime0 = rep(NA, n1[2])
-   enterTime0[1:nEachMonth$n0[1]] = runif(nEachMonth$n0[1], min=0, max=1)
-   if (A1 > 1) {for (m in 2:A1){
-     LL = sum(nEachMonth$n0[1:(m-1)])+1
-     UU = sum(nEachMonth$n0[1:m])
-     enterTime0[LL:UU] = runif(nEachMonth$n0[m], min=m-1, max=m)
-   }}
-   
-   enterTime1 = rep(NA, n1[1])
-   enterTime1[1:nEachMonth$n1[1]] = runif(nEachMonth$n1[1], min=0, max=1)
-   if (A1 > 1) {for (m in 2:A1){
-     LL = sum(nEachMonth$n1[1:(m-1)])+1
-     UU = sum(nEachMonth$n1[1:m])
-     enterTime1[LL:UU] = runif(nEachMonth$n1[m], min=m-1, max=m)
-   }}
-   
-   treatment = c(rep("control", n1[2]), rep("experimental", n1[1]))
-   enterTime = c(enterTime0, enterTime1)
-   survTime = as.numeric(c(t0, t[]))  
-    
+   return(o)
  }
 

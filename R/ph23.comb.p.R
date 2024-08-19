@@ -4,8 +4,10 @@
 #' Multiple testing adjustment method is Simes method for each family wise hypothesis H_J at stage 1. Then closed testing procedure is applied for weighted z combining stage 1 and stage 2.
 #' 
 #' 
-#' @param z1 A matrix of z values at stage 1. z1 has dimensions of [ntrials, ndoses]. ndoses must be 2 or 3.
+#' @param z1 A matrix of z values at stage 1. z1 has dimensions of (ntrials, ndoses). ndoses must be 2 or 3.
+#' @param p1 A matrix of p values at stage 1. p1 = 1-pnorm(z1). either z1 or p1 must be provided.
 #' @param z2 stage 2 z test statistic. a vector of length = ntrials. length(z2) must be equal to nrow(z1)
+#' @param p2 stage 2 p value. p2 = 1-pnorm(z2). Either z2 or p2 must be provided.
 #' @param w weight for stage 1 z statistic. If w is a single number, all trials use the same weight in p value combination.
 #' @param bd.z rejection boundary in z scale for the combination test
 #' 
@@ -18,7 +20,8 @@
 #' \item{unadj.zs}{unadjusted z value for selected dose s}
 #' \item{adj.zs}{adjusted z value for selected dose s in Stage 1 after closed testing procedure using Simes method}
 #' \item{comb.z}{Combination z value combining stage 1 and stage 2}
-#' \item{RejPct}{Percentage of rejection, appliable for simulations when z1 has a large number of rows (trials)}
+#' \item{RejPct}{Percentage of rejection, applicable for simulations when z1 has a large number of rows (trials)}
+#' \item{Selection}{Probability of selection of each dose, applicable for simulations when z1 has a large number of rows (trials)}
 #' }
 #' 
 #' @examples
@@ -46,9 +49,12 @@
 #' 
 #' @export 
 #' 
-ph23.comb.p = function(z1, z2, bd.z=1.96, w=0.2){
+ph23.comb.p = function(z1, z2, p1=NULL, p2=NULL, bd.z=1.96, w=0.2){
   n.doses = ncol(z1) #only works for up to 3 dose levels in this program.
   N = nrow(z1) #number of trials
+  
+  if (!is.null(p1)) {z1 = qnorm(1-p1)}
+  if (!is.null(p2)) {z2 = qnorm(1-p2)}
   
   #familywise P(reject H_J | H_J) assuming independent incremental
   
@@ -111,9 +117,16 @@ ph23.comb.p = function(z1, z2, bd.z=1.96, w=0.2){
   o$unadj.zs = zs
   o$adj.zs = z1s
   o$comb.z = comb.z
+  
+  selection = rep(NA, n.doses)
   if (N > 1){ 
     RejPct = sum(comb.z > bd.z) / N
     o$RejPct = RejPct
+    for (j in 1:n.doses){
+      selection[j] = sum(s == j) / N
+    }
+    o$selection = selection
+    
   }
   
   return(o)
