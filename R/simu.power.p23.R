@@ -46,8 +46,8 @@
 simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
                           Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
                           Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
-                          enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
-                          bd.z=c(2.268527, 2.022098), alpha=0.025, 
+                          enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), 
+                          alpha=0.025, sf=gsDesign::sfLDOF, 
                           method = "Independent Incremental", seed = 2024){
   
   set.seed(seed)
