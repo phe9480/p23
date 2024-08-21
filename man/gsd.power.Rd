@@ -39,8 +39,8 @@ Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 DCO1 = 16, Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 enrollment.hold=4, targetEvents2 = c(300, 380))
 
-IA = ph23.comb.p(z1=o$z1,  z2 = o$z2[,1], bd.z=bd.z$actual.z[1], w=o$w[,1])
-FA = ph23.comb.p(z1=o$z1,  z2 = o$z2[,2], bd.z=bd.z$actual.z[2], w=o$w[,2])
+IA = ph23.comb.p(z1=o$z1,  z2 = o$z2[,1], bd.z=bd.z[1], w=o$w[,1])
+FA = ph23.comb.p(z1=o$z1,  z2 = o$z2[,2], bd.z=bd.z[2], w=o$w[,2])
 
 #power calculation
 gsd.power(z = cbind(IA$comb.z, FA$comb.z), bd.z=bd.z)
