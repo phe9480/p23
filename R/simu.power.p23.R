@@ -1,0 +1,85 @@
+#' Phase 2/3 Inferential Seamless Design Power calculation by simulations
+#'
+#' This functions calculates the cumulative power and overall power for a group sequential design by simulations.
+#'
+#' @param nSim Number of simulated trials
+#' @param n1 Stage 1 sample size of each dose and control arm. length(n1) must be number of arms.
+#' @param n2 Stage 2 Sample size of the selected dose and control arm. length(n2) must be 2.
+#' @param m Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)
+#' @param A1 Enrollment period for Stage 1
+#' @param Lambda1 Enrollment distribution function (CDF) for stage 1.
+#' @param DCO1 Data cutoff date for Stage 1
+#' @param enrollment.hold Holding period in months after DCO1 of Stage 1 prior to enrollment of Stage 2 patients. 0 means seamless enrollment.
+#' @param A2 Enrollment period for Stage 2
+#' @param Lambda2 Enrollment distribution function (CDF) for stage 2.
+#' @param targetEvents2 Planned target number of events for Stage 2. Either targetEvents2 must be provided. 
+#' @param alpha Type I error (one-sided) for testing the selected dose, usually 0.025.
+#' @param sf Spending functions. acceptable options include all spending functions in gsDesign R package, for example, "gsDesign::sfLDOF"
+#' @param method "Independent Incremental", "Disjoint Subjects". Currently, only "Independent Incremental" method is implemented.
+#' The multiplicity adjustment is performed according to the extended followup data up to 1st analysis. This option is applicable to "Disjoined Subjects" method. Currently, not implemented yet.
+#' @param seed Sampling seed. Default 2024.
+#' 
+#' @return An object with values:
+#' \describe{
+#' \item{bd.z}{z value rejection boundary at each analysis}
+#' \item{cum.pow}{Cumulative power}
+#' }
+#' 
+#' 
+#' @examples
+#' #Example (1): Stage 1: 4 arms; 3 dose levels; each arm 50 patients.
+#' #Stage 2: additional 200 patients per arm will be enrolled at stage 2
+#' #medians for the 4 arms: 9, 11, 13 and control = 8 months
+#' #Enrollment: 12 months uniform in stage 1; 12 months uniform in stage 2
+#' #Holding period: 4 months between stage 1 and 2
+#' #Dose selection will be based on data cut at 16 months
+#' #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
+#'
+#' simu.power.p23(nSim=100, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+#' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+#' enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
+#' alpha=0.025, method = "Independent Incremental")
+#' 
+#' @export 
+#' 
+simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
+                          Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+                          Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+                          enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
+                          bd.z=c(2.268527, 2.022098), alpha=0.025, 
+                          method = "Independent Incremental", seed = 2024){
+  
+  set.seed(seed)
+  
+  #Number of analyses in stage 2
+  K = length(targetEvents2)
+  
+  #Number of arms
+  n.arms = length(n1)
+  
+  #Combination Z values
+  comb.z = matrix(NA, nrow=nSim, ncol=K)
+  
+  n2 = c(rep(n2[1], n.arms-1), n2[2])
+  for (i in 1:nSim){
+    p23trial = simu.p23trial(n1 = n1, n2 = n2, m = m, Lambda1 = Lambda1, A1 = A1, 
+                             Lambda2 = Lambda2, A2 = A2, enrollment.hold=enrollment.hold)
+    o=conduct.p23(data=p23trial, DCO1=DCO1, targetEvents = targetEvents2, method = method)
+    for (j in 1:K){
+      oj = ph23.comb.p(z1=o$z1,  z2 = o$z2[,j], bd.z=bd.z[j], w=o$w[,j])
+      comb.z[i, j] = oj$comb.z
+    }
+  }
+  if (K == 1) {bd.z = qnorm(1-alpha)} else {
+    bd.z = gsDesign::gsDesign(k=K,alpha=alpha,timing=targetEvents2/targetEvents2[K],sfu=sf, test.type=1)$upper$bound
+  }
+  cum.pow=gsd.power(z = comb.z, bd.z=bd.z)
+  
+  o = list()
+  o$cum.pow = cum.pow
+  o$bd.z = bd.z
+  
+  return(o)
+}
+
