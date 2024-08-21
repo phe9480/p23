@@ -42,7 +42,7 @@ also returns the weights for combination p value approach in the next step and t
 #Dose selection will be based on data cut at 16 months
 #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
  
-p23trial = simu.ph23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
 Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 enrollment.hold=4)

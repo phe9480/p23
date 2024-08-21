@@ -20,9 +20,8 @@ simu.power.p23(
   enrollment.hold = 4,
   DCO1 = 16,
   targetEvents2 = c(300, 380),
-  sf = gsDesign::sfLDOF,
-  bd.z = c(2.268527, 2.022098),
   alpha = 0.025,
+  sf = gsDesign::sfLDOF,
   method = "Independent Incremental",
   seed = 2024
 )
@@ -50,9 +49,9 @@ simu.power.p23(
 
 \item{targetEvents2}{Planned target number of events for Stage 2. Either targetEvents2 must be provided.}
 
-\item{sf}{Spending functions. acceptable options include all spending functions in gsDesign R package, for example, "gsDesign::sfLDOF"}
-
 \item{alpha}{Type I error (one-sided) for testing the selected dose, usually 0.025.}
+
+\item{sf}{Spending functions. acceptable options include all spending functions in gsDesign R package, for example, "gsDesign::sfLDOF"}
 
 \item{method}{"Independent Incremental", "Disjoint Subjects". Currently, only "Independent Incremental" method is implemented.
 The multiplicity adjustment is performed according to the extended followup data up to 1st analysis. This option is applicable to "Disjoined Subjects" method. Currently, not implemented yet.}
