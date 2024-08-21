@@ -71,7 +71,7 @@ simu.p23trial = function(n1 = c(50, 50, 50, 50), n2 = c(200, 200, 200, 200), m =
        if (j == n.arms){dat1[[j]]$group = 0}
    }
     #combine all treatment group data together 
-  dat1 =  rbindlist(dat1, fill = TRUE)
+  dat1 =  data.table::rbindlist(dat1, fill = TRUE)
   
   ######################
   #Stage 2:  
@@ -101,10 +101,10 @@ simu.p23trial = function(n1 = c(50, 50, 50, 50), n2 = c(200, 200, 200, 200), m =
      dat2[[j]] <- subset(dat2[[j]], select = -c(enterTime.original, calendarTime.original))
   }
   #combine all treatment group data together 
-  dat2 =  rbindlist(dat2, fill = TRUE)
+  dat2 =  data.table::rbindlist(dat2, fill = TRUE)
   
   #6. Combine Stage 1 and Stage 2 data
-  dat =  rbindlist(list(dat1, dat2), fill = TRUE)
+  dat =  data.table::rbindlist(list(dat1, dat2), fill = TRUE)
 
   return(dat)
 }
