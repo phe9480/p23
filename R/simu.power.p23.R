@@ -67,7 +67,7 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
                              Lambda2 = Lambda2, A2 = A2, enrollment.hold=enrollment.hold)
     o=conduct.p23(data=p23trial, DCO1=DCO1, targetEvents = targetEvents2, method = method)
     for (j in 1:K){
-      oj = ph23.comb.p(z1=o$z1,  z2 = o$z2[,j], bd.z=bd.z[j], w=o$w[,j])
+      oj = comb.pvalue.p23(z1=o$z1,  z2 = o$z2[,j], bd.z=bd.z[j], w=o$w[,j])
       comb.z[i, j] = oj$comb.z
     }
   }
