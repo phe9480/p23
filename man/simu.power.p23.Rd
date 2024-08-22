@@ -9,6 +9,9 @@ simu.power.p23(
   n1 = rep(50, 4),
   n2 = rep(200, 2),
   m = c(9, 9, 9, 9),
+  orr = c(0.25, 0.3, 0.4, 0.2),
+  rho = 0.7,
+  dose_selection_endpoint = "ORR",
   Lambda1 = function(t) {
      (t/12) * as.numeric(t <= 12) + as.numeric(t > 12)
  },
@@ -22,6 +25,7 @@ simu.power.p23(
   targetEvents2 = c(300, 380),
   alpha = 0.025,
   sf = gsDesign::sfLDOF,
+  multiplicity.method = "simes",
   method = "Independent Incremental",
   seed = 2024
 )
@@ -77,10 +81,21 @@ This functions calculates the cumulative power and overall power for a group seq
 #Dose selection will be based on data cut at 16 months
 #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
 
+#Dose selection decision is NOT based on ORR.
 simu.power.p23(nSim=100, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+orr = NULL, rho = NULL, dose_selection_endpoint = "not ORR",
 Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
 alpha=0.025, method = "Independent Incremental")
+
+#Example (2): #Dose selection decision based on ORR
+simu.power.p23(nSim=100, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
+alpha=0.025, method = "Independent Incremental")
+
 
 }

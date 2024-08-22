@@ -11,6 +11,7 @@ comb.pvalue.p23(
   p2 = NULL,
   bd.z = 1.96,
   w = 0.2,
+  selected.dose = NULL,
   method = "simes"
 )
 }
@@ -26,6 +27,8 @@ comb.pvalue.p23(
 \item{bd.z}{rejection boundary in z scale for the combination test}
 
 \item{w}{weight for stage 1 z statistic. If w is a single number, all trials use the same weight in p value combination.}
+
+\item{selected.dose}{Selected dose. If NULL, the dose will be determined based on max(z1\link{i, }) for each trial i}
 
 \item{method}{"simes", "Dunnett". Currently only "simes" method is implemented.}
 }
@@ -97,5 +100,8 @@ IA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[1], bd.z=bd.z[1], w=o$w[1
 FA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], bd.z=bd.z[2], w=o$w[2])
 
 gsd.power(z = cbind(IA$comb.z, FA$comb.z), bd.z=bd.z)
+
+#Force the selected dose = 2, which may be based on ORR selection at Stage 1
+comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], selected.dose = 2, bd.z=bd.z[2], w=o$w[2])
 
 }
