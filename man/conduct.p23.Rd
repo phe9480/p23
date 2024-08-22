@@ -5,9 +5,9 @@
 \title{Conduct a phase 2/3 dose optimization trial for survival endpoint}
 \usage{
 conduct.p23(
-  data = p23trial,
+  data = NULL,
   DCO1 = 16,
-  targetEvents = c(300, 380),
+  targetEvents2 = c(300, 380),
   dose_selection_endpoint = "ORR",
   method = "Independent Incremental"
 )
@@ -17,11 +17,11 @@ conduct.p23(
 
 \item{DCO1}{Data cutoff for Stage 1}
 
+\item{targetEvents2}{Planned target number of events for Stage 2. Either targetEvents2 must be provided.}
+
 \item{dose_selection_endpoint}{Endpoint for dose selection at Stage 1. "ORR" or "not ORR"}
 
 \item{method}{"Independent Incremental", "Disjoint Subjects". Currently, only "Independent Incremental" method is implemented.}
-
-\item{targetEvents2}{Planned target number of events for Stage 2. Either targetEvents2 must be provided.}
 }
 \value{
 \describe{
