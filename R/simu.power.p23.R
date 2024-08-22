@@ -17,7 +17,6 @@
 #' @param sf Spending functions. acceptable options include all spending functions in gsDesign R package, for example, "gsDesign::sfLDOF"
 #' @param method "Independent Incremental", "Disjoint Subjects". Currently, only "Independent Incremental" method is implemented.
 #' The multiplicity adjustment is performed according to the extended followup data up to 1st analysis. This option is applicable to "Disjoined Subjects" method. Currently, not implemented yet.
-#' @param seed Sampling seed. Default 2024.
 #' 
 #' @return An object with values:
 #' \describe{
@@ -36,7 +35,7 @@
 #' #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
 #'
 #' #Dose selection decision is NOT based on ORR.
-#' simu.power.p23(nSim=100, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' simu.power.p23(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9, 9, 9, 9), 
 #' orr = NULL, rho = NULL, dose_selection_endpoint = "not ORR",
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
@@ -44,7 +43,7 @@
 #' alpha=0.025, method = "Independent Incremental")
 #' 
 #' #Example (2): #Dose selection decision based on ORR
-#' simu.power.p23(nSim=100, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' simu.power.p23(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
 #' orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
@@ -60,9 +59,8 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
                           Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
                           enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), 
                           alpha=0.025, sf=gsDesign::sfLDOF, multiplicity.method="simes",
-                          method = "Independent Incremental", seed = 2024){
+                          method = "Independent Incremental"){
   
-  set.seed(seed)
   
   #Number of analyses in stage 2
   K = length(targetEvents2)
@@ -76,11 +74,11 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
   
   n2 = c(rep(n2[1], n.arms-1), n2[2])
   for (i in 1:nSim){
-    p23trial = simu.p23trial(n1 = n1, n2 = n2, m = m, 
+    p23i = simu.p23trial(n1 = n1, n2 = n2, m = m, 
                              orr = orr, rho = rho, dose_selection_endpoint = dose_selection_endpoint,
                              Lambda1 = Lambda1, A1 = A1, 
                              Lambda2 = Lambda2, A2 = A2, enrollment.hold=enrollment.hold)
-    o=conduct.p23(data=p23trial, DCO1=DCO1, dose_selection_endpoint = dose_selection_endpoint, targetEvents = targetEvents2, method = method)
+    o=conduct.p23(data=p23i, DCO1=DCO1, dose_selection_endpoint = dose_selection_endpoint, targetEvents = targetEvents2, method = method)
     s[i] = o$s
     for (j in 1:K){
       oj = comb.pvalue.p23(z1=o$z1,  z2 = o$z2[,j], bd.z=bd.z[j], w=o$w[,j], selected.dose = s[i], method=multiplicity.method)
@@ -101,6 +99,7 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
     selection[j] = sum(s == j) / nSim
   }
   o$selection = selection
+  o$s=s
   
   return(o)
 }

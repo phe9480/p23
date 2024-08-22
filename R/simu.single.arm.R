@@ -3,13 +3,13 @@
 #' This functions simulates trials that have multiple dose arms at Stage 1 and the best dose is always selected after Stage 1 and perform multiple analyses at Stage 2
 #' The function returns multiple datasets including at end of Stage 1 (all dose arms) and at each of analysis at Stage 2
 #'
-#' @param n1 Sample size of (dose arm, control arm) at Stage 1. length(n1) must be 2.
-#' @param n2 Sample size of the (selected dose arm, control arm). length(n2) must be 2.
-#' @param m Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)
-#' @param Lambda2 Enrollment distribution function (CDF) for stage 2.
-#' @param Lambda1 Enrollment distribution function (CDF) for stage 1.
-#' @param DCO1 Data cutoff date for Stage 1
-#' @param targetEvents Planned target number of events for Stage 2. Either targetEvents or DCO must be provided. 
+#' @param n Sample size
+#' @param m Median survival time
+#' @param Lambda Enrollment distribution function (CDF) 
+#' @param A Enrollment period
+#' @param drop Dropout rate per month
+#' @param DCO Data cutoff date for Stage 1
+#' @param targetEvents Planned target number of events. Either targetEvents or DCO must be provided. 
 #' 
 #' @return Datasets including data1: Stage 1 data with multiple dose arms; data2: Stage 2 data of the selected dose arm and control arm with data2[[j]] for jth analysis. Each dataset includes variables
 #' \describe{
@@ -21,14 +21,7 @@
 #' \item{calendarCutOff}{Data CutOff Time (DCO);}
 #' \item{survTimeCut}{Survival time after cut}
 #' \item{cnsrCut}{Censor status after cut}
-#' }
-#' The function also returns a dataframe decision with variables: 
-#' \describe{
-#' \item{z}{log rank z value for each dose compared to control using stage 1 data}
-#' \item{p}{log rank p value for each dose compared to control using stage 1 data}
-#' \item{adj.p}{adjusted log rank p value for selected dose arm}
-#' \item{adj.z}{adjusted log rank p value for selected dose arm}
-#' \item{selected}{Selected dose arm, applicable for data2 only}
+#' \item{analysis}{Sequence of analysis}
 #' }
 #' 
 #' @examples
@@ -95,6 +88,7 @@ simu.single.arm = function(n = 100, m = 10,
   dat.cut = NULL
   for (ii in 1:L){
     dat.cut[[ii]] = f.dataCut(data=dati, targetEvents=targetEvents[ii], DCO = DCO[ii])
+    dat.cut[[ii]]$analysis = ii
   }
   return(dat.cut)
 }
