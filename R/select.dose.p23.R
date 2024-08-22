@@ -4,6 +4,7 @@
 #'
 #' @param data Dataset produced by simu.p23trial() function.
 #' @param DCO1 Data cutoff date for stage 1 dose selection
+#' @param dose_selection_endpoint  Dose selection end point: "ORR" or "not ORR"
 #' 
 #' @return 
 #' \describe{
@@ -24,15 +25,34 @@
 #'
 #' 
 #' p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+#' orr = NULL, rho = NULL, dose_selection_endpoint = "not ORR",
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 #' enrollment.hold=4)
 #' 
-#' select.dose.p23 (data=p23trial, DCO1=16)
+#' select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR")
+#' 
+#' #' #Example (2): Stage 1: 4 arms; 3 dose levels; each arm 50 patients.
+#' #Stage 2: additional 200 patients per arm will be enrolled at stage 2
+#' #medians for the 4 arms: 9, 11, 13 and control = 8 months
+#' #Enrollment: 12 months uniform in stage 1; 12 months uniform in stage 2
+#' #Holding period: 4 months between stage 1 and 2
+#' #Dose selection will be based on ORR with data cut at 16 months
+#' #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
+#'
+#' 
+#' p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+#' orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+#' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+#' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+#' enrollment.hold=4)
+#' 
+#' 
+#' select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "ORR")
 #' 
 #' @export 
 #' 
-select.dose.p23 = function(data=NULL, DCO1=16){
+select.dose.p23 = function(data=NULL, DCO1=16, dose_selection_endpoint = "ORR"){
    
    ######################
    #Stage 1
@@ -48,21 +68,34 @@ select.dose.p23 = function(data=NULL, DCO1=16){
    #e1: total number of events for by DCO1 for each dose arm + control
    #z1: z statistics by DCO1 for each dose arm + control
    z1 = e1 = rep(NA, ncol=n.arms-1)
-
+   if (dose_selection_endpoint == "ORR"){
+     orr.control <- mean(dat1cut[dat1cut$group == 0, ]$response)
+     orr.diff = rep(NA, n.arms-1)
+    }
+   
    for (j in 1:(n.arms-1)){
-     datj = dat1cut[dat1cut$group == 0 | dat1cut$group == j, ]
+     datj = dat1cut[(dat1cut$group == 0 | dat1cut$group == j), ]
      z1[j] = logrank.one.sided(time=datj$survTimeCut, cnsr=datj$cnsrCut, group=datj$group)$z
      e1[j] = sum(1-datj$cnsrCut)
-   }
      
+     if (dose_selection_endpoint == "ORR"){
+       orr.diff[j] = mean(datj$response) - orr.control
+     }   
+   }
+    
    #3. Dose selection
-   tmp = sort(z1, index.return = TRUE)
+   if (dose_selection_endpoint == "ORR"){
+     tmp = sort(orr.diff, index.return = TRUE)
+   } else {
+     tmp = sort(z1, index.return = TRUE)
+   }
    s = tmp$ix[n.arms-1]
    
    o = list()
    o$z1 = z1
    o$e1 = e1
    o$s = s
+   if (dose_selection_endpoint == "ORR") {o$orr.diff = orr.diff}
    
    return(o)
 }

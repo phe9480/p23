@@ -5,7 +5,9 @@
 #' also returns the weights for combination p value approach in the next step and the weights are sqrt of information fractions. 
 #'
 #' @param data Dataset produced by simu.p23trial() function
-#' @param targetEvents2 Planned target number of events for Stage 2. Either targetEvents2 must be provided. 
+#' @param DCO1 Data cutoff for Stage 1
+#' @param targetEvents2 Planned target number of events for Stage 2. Either targetEvents2 must be provided.
+#' @param dose_selection_endpoint Endpoint for dose selection at Stage 1. "ORR" or "not ORR"
 #' @param method "Independent Incremental", "Disjoint Subjects". Currently, only "Independent Incremental" method is implemented.
 #' 
 #' @return 
@@ -28,22 +30,44 @@
 #' #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
 #'  
 #' p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+#' orr = NULL, rho = NULL, dose_selection_endpoint = "not ORR",
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 #' enrollment.hold=4)
 #' 
-#' sel = select.dose (data=p23trial, DCO1=16)
+#' sel = select.dose (data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR")
 #' 
-#' o=conduct.p23(data=p23trial, DCO1=16, targetEvents = c(300, 380), method = "Independent Incremental")
+#' o=conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR",
+#' targetEvents = c(300, 380), method = "Independent Incremental")
 #' 
+#' #Example (2): Stage 1: 4 arms; 3 dose levels; each arm 50 patients.
+#' #Stage 2: additional 200 patients per arm will be enrolled at stage 2
+#' #medians for the 4 arms: 9, 11, 13 and control = 8 months
+#' #Enrollment: 12 months uniform in stage 1; 12 months uniform in stage 2
+#' #Holding period: 4 months between stage 1 and 2
+#' #Dose selection will be based on ORR with data cut at 16 months
+#' #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
+#'
+#' 
+#' p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+#' orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+#' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+#' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+#' enrollment.hold=4)
+#' 
+#' select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "ORR")
+#' 
+#' o=conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "ORR",
+#' targetEvents = c(300, 380), method = "Independent Incremental")
 #' 
 #' 
 #' @export 
 #' 
-conduct.p23 = function(data=p23trial, DCO1=16, targetEvents = c(300, 380), method = "Independent Incremental"){
+conduct.p23 = function(data=p23trial, DCO1=16, targetEvents = c(300, 380), dose_selection_endpoint = "ORR",
+                       method = "Independent Incremental"){
 
   #1. Dose selection  
-  sel = select.dose.p23 (data=p23trial, DCO1=16)
+  sel = select.dose.p23 (data=p23trial, DCO1=DCO1, dose_selection_endpoint = dose_selection_endpoint)
   z1 = sel$z1; e1=sel$e1; s=sel$s
   
   #2. Assemble the trial data combining stage 1 and stage 2 for selected dose + control
@@ -76,6 +100,10 @@ conduct.p23 = function(data=p23trial, DCO1=16, targetEvents = c(300, 380), metho
   o$z2 = matrix(z2, nrow=1)
   o$z.c = matrix(z.c, nrow=1)
   o$w = matrix(w, nrow=1)
+  if (dose_selection_endpoint == "ORR") {
+    o$orr.diff = matrix(orr.diff, nrow=1)
+  }
+  o$dose.selection.endpoint=dose_selection_endpoint
   
   return(o)
 }

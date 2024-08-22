@@ -10,6 +10,7 @@
 #' @param p2 stage 2 p value. p2 = 1-pnorm(z2). Either z2 or p2 must be provided.
 #' @param w weight for stage 1 z statistic. If w is a single number, all trials use the same weight in p value combination.
 #' @param bd.z rejection boundary in z scale for the combination test
+#' @param selected.dose Selected dose. If NULL, the dose will be determined based on max(z1[i, ]) for each trial i
 #' @param method "simes", "Dunnett". Currently only "simes" method is implemented.
 #' 
 #' @return Returned values include:
@@ -76,9 +77,12 @@
 #' 
 #' gsd.power(z = cbind(IA$comb.z, FA$comb.z), bd.z=bd.z)
 #' 
+#' #Force the selected dose = 2, which may be based on ORR selection at Stage 1
+#' comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], selected.dose = 2, bd.z=bd.z[2], w=o$w[2])
+#' 
 #' @export 
 #' 
-comb.pvalue.p23 = function(z1, z2, p1=NULL, p2=NULL, bd.z=1.96, w=0.2, method="simes"){
+comb.pvalue.p23 = function(z1, z2, p1=NULL, p2=NULL, bd.z=1.96, w=0.2, selected.dose = NULL, method="simes"){
   n.doses = ncol(z1) #only works for up to 3 dose levels in this program.
   N = nrow(z1) #number of trials
   
@@ -92,12 +96,19 @@ comb.pvalue.p23 = function(z1, z2, p1=NULL, p2=NULL, bd.z=1.96, w=0.2, method="s
   ##################
   zs = rep(NA, N) #raw z for Stage 1 selected dose s 
   s = rep(NA, N) #Stage 1 selected dose s
-  
-  for (i in 1:N){
-    tmp = sort(z1[i,], index.return = TRUE)
-    zs[i] = tmp$x[n.doses]
-    s[i] = tmp$ix[n.doses]
+  if (is.null(selected.dose)) {
+    for (i in 1:N){
+      tmp = sort(z1[i,], index.return = TRUE)
+      zs[i] = tmp$x[n.doses]
+      s[i] = tmp$ix[n.doses]
+    }
+  } else {
+    s = selected.dose
+    for (i in 1:N){
+      zs[i] = z1[i, s[i]]
+    }  
   }
+  
   #cbind(z, zs, ps, s)
   ps = 1-pnorm(zs) #raw p value for selected dose
   
@@ -118,7 +129,6 @@ comb.pvalue.p23 = function(z1, z2, p1=NULL, p2=NULL, bd.z=1.96, w=0.2, method="s
       for (j in 1:length(unselected)){
         simes.p2[i,j] = simes(c(p[i, s[i]], p[i,unselected[j]]))
       }
-    
     #final adjusted p by CTP
     p1s[i] = max(simes.p3[i], simes.p2[i,], p[i, s[i]])
   }
@@ -155,7 +165,6 @@ comb.pvalue.p23 = function(z1, z2, p1=NULL, p2=NULL, bd.z=1.96, w=0.2, method="s
       selection[j] = sum(s == j) / N
     }
     o$selection = selection
-    
   }
   
   return(o)
