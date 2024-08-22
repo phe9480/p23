@@ -15,13 +15,16 @@
 #' @param targetEvents2 Planned target number of events for Stage 2. Either targetEvents2 must be provided. 
 #' @param alpha Type I error (one-sided) for testing the selected dose, usually 0.025.
 #' @param sf Spending functions. acceptable options include all spending functions in gsDesign R package, for example, "gsDesign::sfLDOF"
-#' @param method "Independent Incremental", "Disjoint Subjects". Currently, only "Independent Incremental" method is implemented.
-#' The multiplicity adjustment is performed according to the extended followup data up to 1st analysis. This option is applicable to "Disjoined Subjects" method. Currently, not implemented yet.
+#' @param method Options include "Independent Incremental": z1 at dose selection and z2 is from dose selection to kth analysis at stage 2; 
+#' "Disjoint Subjects": z1 is at kth analysis for stage 1 subjects; z2 is at the kth analysis for stage 2 subjects. z1 will be adjusted by multiplicity and closed testing procedure at each analysis.
+#' "Mixture": Only consider disjoint subjects at first analysis in stage 2. Starting from the 2nd analysis, consider independent incremental methods. Only z1 at 1st analysis will be adjusted by multiplicity and closed testing procedure.
 #' 
 #' @return An object with values:
 #' \describe{
 #' \item{bd.z}{z value rejection boundary at each analysis}
 #' \item{cum.pow}{Cumulative power}
+#' \item{s}{Selected dose}
+#' \item{selection}{Probability of selection among doses}
 #' }
 #' 
 #' 
@@ -50,6 +53,12 @@
 #' enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
 #' alpha=0.025, method = "Independent Incremental")
 #' 
+#' simu.power.p23(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+#' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+#' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+#' enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
+#' alpha=0.025, method = "Disjoint Subjects")
 #' 
 #' @export 
 #' 
@@ -68,6 +77,11 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
   #Number of arms
   n.arms = length(n1)
   
+  #rejection boundary by traditional GSD
+  if (K == 1) {bd.z = qnorm(1-alpha)} else {
+    bd.z = gsDesign::gsDesign(k=K,alpha=alpha,timing=targetEvents2/targetEvents2[K],sfu=sf, test.type=1)$upper$bound
+  }
+  
   #Combination Z values
   comb.z = matrix(NA, nrow=nSim, ncol=K)
   s = rep(NA, nSim) #selected dose
@@ -78,16 +92,25 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
                              orr = orr, rho = rho, dose_selection_endpoint = dose_selection_endpoint,
                              Lambda1 = Lambda1, A1 = A1, 
                              Lambda2 = Lambda2, A2 = A2, enrollment.hold=enrollment.hold)
+    
     o=conduct.p23(data=p23i, DCO1=DCO1, dose_selection_endpoint = dose_selection_endpoint, targetEvents2 = targetEvents2, method = method)
     s[i] = o$s
-    for (j in 1:K){
-      oj = comb.pvalue.p23(z1=o$z1,  z2 = o$z2[,j], bd.z=bd.z[j], w=o$w[,j], selected.dose = s[i], method=multiplicity.method)
-      comb.z[i, j] = oj$comb.z; 
+    
+    if (method == "Independent Incremental") {
+      for (j in 1:K){
+        oj = comb.pvalue.p23(z1=o$z1,  z2 = o$z2[,j], bd.z=bd.z[j], w=o$w[,j], selected.dose = s[i], method=multiplicity.method)
+        comb.z[i, j] = oj$comb.z; 
+      }
+    } else if (method == "Disjoint Subjects") {
+      for (j in 1:K){
+        oj = comb.pvalue.p23(z1=matrix(o$z1[j, ], nrow=1),  z2 = o$z2[,j], bd.z=bd.z[j], w=o$w[,j], selected.dose = s[i], method=multiplicity.method)
+        comb.z[i, j] = oj$comb.z; 
+      }
+    } else if (method == "Mixture") {
+      comb.z[i, ] = o$z.tilde
     }
   }
-  if (K == 1) {bd.z = qnorm(1-alpha)} else {
-    bd.z = gsDesign::gsDesign(k=K,alpha=alpha,timing=targetEvents2/targetEvents2[K],sfu=sf, test.type=1)$upper$bound
-  }
+  
   cum.pow=gsd.power(z = comb.z, bd.z=bd.z)
   
   o = list()
