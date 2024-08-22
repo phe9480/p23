@@ -8,6 +8,9 @@ simu.p23trial(
   n1 = c(50, 50, 50, 50),
   n2 = c(200, 200, 200, 200),
   m = c(9, 11, 13, 8),
+  orr = c(0.25, 0.3, 0.4, 0.2),
+  rho = 0.7,
+  dose_selection_endpoint = "ORR",
   Lambda1 = function(t) {
      (t/12) * as.numeric(t <= 12) + as.numeric(t > 12)
  },
@@ -25,6 +28,10 @@ simu.p23trial(
 \item{n2}{Sample size of each arm at Stage 2.}
 
 \item{m}{Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)}
+
+\item{orr}{Objective response (binary: 1 = response, 0 = non-response). Must be available for all doses. length(orr) = number of arms. The last one is for control arm.}
+
+\item{rho}{Correlation between ORR and time to event endpoint}
 
 \item{Lambda1}{Enrollment distribution function (CDF) for stage 1.}
 
@@ -64,8 +71,17 @@ Features include: (1) Stage 1 and Stage 2 have separate enrollment curves;
 #Dose selection will be based on data cut at 16 months
 #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
 
-
+#Dose selection decision is based on ORR. 
 p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+enrollment.hold=4)
+
+#Example (2): 
+#Dose selection decision is NOT based on ORR.
+p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+orr = NULL, rho = NULL, dose_selection_endpoint = "not ORR",
 Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 enrollment.hold=4)
