@@ -78,7 +78,7 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
                              orr = orr, rho = rho, dose_selection_endpoint = dose_selection_endpoint,
                              Lambda1 = Lambda1, A1 = A1, 
                              Lambda2 = Lambda2, A2 = A2, enrollment.hold=enrollment.hold)
-    o=conduct.p23(data=p23i, DCO1=DCO1, dose_selection_endpoint = dose_selection_endpoint, targetEvents = targetEvents2, method = method)
+    o=conduct.p23(data=p23i, DCO1=DCO1, dose_selection_endpoint = dose_selection_endpoint, targetEvents2 = targetEvents2, method = method)
     s[i] = o$s
     for (j in 1:K){
       oj = comb.pvalue.p23(z1=o$z1,  z2 = o$z2[,j], bd.z=bd.z[j], w=o$w[,j], selected.dose = s[i], method=multiplicity.method)

@@ -63,7 +63,7 @@
 #' 
 #' @export 
 #' 
-conduct.p23 = function(data=p23trial, DCO1=16, targetEvents = c(300, 380), dose_selection_endpoint = "ORR",
+conduct.p23 = function(data=NULL, DCO1=16, targetEvents2 = c(300, 380), dose_selection_endpoint = "ORR",
                        method = "Independent Incremental"){
 
   #1. Dose selection  
