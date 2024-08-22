@@ -197,7 +197,7 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
   o$cum.pow = cum.pow
   o$bd.z = bd.z
   
-  o$selection = colSums(select.all)/nSim
+  o$selection = colMeans(select.all)
   o$s=s.all
   
   # Stop the cluster
