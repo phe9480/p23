@@ -21,16 +21,37 @@ conduct.p23(
 
 \item{dose_selection_endpoint}{Endpoint for dose selection at Stage 1. "ORR" or "not ORR"}
 
-\item{method}{"Independent Incremental", "Disjoint Subjects". Currently, only "Independent Incremental" method is implemented.}
+\item{method}{Options include "Independent Incremental": z1 at dose selection and z2 is from dose selection to kth analysis at stage 2;
+"Disjoint Subjects": z1 is at kth analysis for stage 1 subjects; z2 is at the kth analysis for stage 2 subjects. z1 will be adjusted by multiplicity and closed testing procedure at each analysis.
+"Mixture": Only consider disjoint subjects at first analysis in stage 2. Starting from the 2nd analysis, consider independent incremental methods. Only z1 at 1st analysis will be adjusted by multiplicity and closed testing procedure.}
 }
 \value{
+If method is "Independent Incremental", return an object with variables
 \describe{
+\item{s}{Selected dose}
 \item{z1}{Stage 1 z values for each dose}
-\item{z.c}{z value for each analysis at Stage 2 for the selected dose}
 \item{z2}{Incremental z statistic at each anaysis at Stage 2, calculated from dose selection to the analysis}
 \item{w}{Weight, calculated as sqrt (total events for selected dose + control at stage 1 / targetEvents at each analysis at Stage 2 for the selected dose + control combining stage 1 and stage 2 patients.)}
-\item{selected.dose}{Selected dose}
-\item{example.data}{A simulated dataset example}
+\item{z.c}{z value for each analysis at Stage 2 for the selected dose}
+}
+If method is "Disjoint Subjects", return an object with variables
+#' \describe{
+\item{s}{Selected dose}
+\item{z1}{Stage 1 z values for unselected doses combined with the selected dose at kth analysis at Stage 2. z1(k, unselected doses Stage 1 followed by selected dose at k)}
+\item{z2}{Incremental z statistic at each anaysis at Stage 2, calculated from dose selection to the analysis}
+\item{w}{Weight, calculated as sqrt (total events for selected dose + control at stage 1 / targetEvents at each analysis at Stage 2 for the selected dose + control combining stage 1 and stage 2 patients.)}
+}
+If method is "Mixture", return an object with variables
+\describe{
+\item{s}{Selected dose}
+\item{z1.unselected}{Stage 1 z values for unselected doses}
+\item{z11}{Stage 1 subjects z value at 1st analysis}
+\item{z21}{Stage 2 subjects z value at 1st analysis}
+\item{omega1}{Weight for 1st analysis combining z11 and z21 to calcualte z1.tilde}
+\item{z.tilde}{Test statistics for group sequential design at Stage 2}
+\item{z.c}{z value for each analysis at Stage 2 for the selected dose}
+\item{z2}{Incremental z statistic at each anaysis at Stage 2, calculated from 1st analysis to each following analysis}
+\item{v}{Weight for 2nd and further analysis combining z1.tilde and z2\link{k} to calculate z.tilde\link{k}}
 }
 }
 \description{
@@ -55,8 +76,17 @@ enrollment.hold=4)
 
 select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR")
 
+#Independent incremental; dose not selected by ORR
 conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR",
-targetEvents = c(300, 380), method = "Independent Incremental")
+targetEvents2 = c(300, 380), method = "Independent Incremental")
+
+#Disjoint Subjects; dose not selected by ORR
+conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR",
+targetEvents2 = c(300, 380), method = "Disjoint Subjects")
+
+#Mixture; dose not selected by ORR
+conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR",
+targetEvents2 = c(300, 380), method = "Mixture")
 
 #Example (2): Stage 1: 4 arms; 3 dose levels; each arm 50 patients.
 #Stage 2: additional 200 patients per arm will be enrolled at stage 2
@@ -73,10 +103,24 @@ Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 enrollment.hold=4)
 
-select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "ORR")
+sel=select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "ORR")
 
+#Independent Incremental, dose selected by ORR
 conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "ORR",
-targetEvents = c(300, 380), method = "Independent Incremental")
+targetEvents2 = c(300, 380), method = "Independent Incremental")
 
+#Disjoint Subjects; dose not selected by ORR
+d = conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "ORR",
+targetEvents2 = c(300, 380), method = "Disjoint Subjects")
+
+#Mixture; dose not selected by ORR
+conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "ORR",
+targetEvents2 = c(300, 380), method = "Mixture")
+
+#Rejection boundary
+bd.z = gsDesign::gsDesign(k=2,alpha=0.025,timing=targetEvents2/targetEvents2[K],sfu=gsDesign::sfLDOF, test.type=1)$upper$bound
+
+#Combination p value
+comb.pvalue.p23(z1=matrix(d$z1[1, ], nrow=1),  z2 = d$z2[,1], bd.z=bd.z[1], w=d$w[,1], selected.dose = sel$s, method="simes")
 
 }
