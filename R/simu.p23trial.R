@@ -8,6 +8,8 @@
 #' @param n1 Sample size of each arm at Stage 1.
 #' @param n2 Sample size of each arm at Stage 2.
 #' @param m Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)
+#' @param orr Objective response (binary: 1 = response, 0 = non-response). Must be available for all doses. length(orr) = number of arms. The last one is for control arm.
+#' @param rho Correlation between ORR and time to event endpoint
 #' @param A1 Enrollment period for Stage 1
 #' @param Lambda1 Enrollment distribution function (CDF) for stage 1.
 #' @param enrollment.hold Holding period in months after DCO1 of Stage 1 prior to enrollment of Stage 2 patients. 0 means seamless enrollment.
@@ -35,8 +37,17 @@
 #' #Dose selection will be based on data cut at 16 months
 #' #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
 #'
-#' 
+#' #Dose selection decision is based on ORR. 
 #' p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+#' orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+#' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+#' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+#' enrollment.hold=4)
+#' 
+#' #Example (2): 
+#' #Dose selection decision is NOT based on ORR.
+#' p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+#' orr = NULL, rho = NULL, dose_selection_endpoint = "not ORR",
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 #' enrollment.hold=4)
@@ -50,9 +61,10 @@
 #' @export 
 #' 
 simu.p23trial = function(n1 = c(50, 50, 50, 50), n2 = c(200, 200, 200, 200), m = c(9, 11, 13, 8), 
-                          Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
-                          Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
-                          enrollment.hold=4){
+                         orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+                         Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+                         Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+                         enrollment.hold=4){
    
    ######################
    #Stage 1
@@ -64,7 +76,11 @@ simu.p23trial = function(n1 = c(50, 50, 50, 50), n2 = c(200, 200, 200, 200), m =
       
    #1. simulate Stage 1 survival data
    for (j in 1:n.arms){
-       dat1[[j]] = simu.single.arm(n=n1[j], m=m[j], Lambda=Lambda1, A=A1, drop=0, DCO=Inf)[[1]]
+       if (dose_selection_endpoint == "ORR"){
+         dat1[[j]] = simu.single.arm.hz(n=n1[j], m=m[j], orr = orr[j], rho = rho, Lambda=Lambda1, A=A1, drop=0, DCO=Inf)[[1]]
+       } else {
+         dat1[[j]] = simu.single.arm(n=n1[j], m=m[j], Lambda=Lambda1, A=A1, drop=0, DCO=Inf)[[1]]
+       }
        dat1[[j]] <- subset(dat1[[j]], select = -c(calendarCutoff, survTimeCut, cnsrCut))
        dat1[[j]]$group = j; dat1[[j]]$stage = 1
        dat1[[j]]$enrollment.period = A1
@@ -82,7 +98,11 @@ simu.p23trial = function(n1 = c(50, 50, 50, 50), n2 = c(200, 200, 200, 200), m =
   #4. simulate Stage 2 data (control and all dose levels)
   dat2 = list(NULL) #control arm is the last one 
   for (j in 1:n.arms){
-     dat2[[j]] = simu.single.arm(n=n2[j], m=m[j], Lambda=Lambda2, A=A2, drop=0, DCO=Inf)[[1]]
+    if (dose_selection_endpoint == "ORR"){
+      dat2[[j]] = simu.single.arm.hz(n=n2[j], m=m[j], orr = orr[j], rho = rho, Lambda=Lambda2, A=A1, drop=0, DCO=Inf)[[1]]
+    } else {
+      dat2[[j]] = simu.single.arm(n=n2[j], m=m[j], Lambda=Lambda2, A=A2, drop=0, DCO=Inf)[[1]]
+    } 
      dat2[[j]]$group = j; 
      if (j == n.arms){dat2[[j]]$group = 0}; 
      dat2[[j]]$stage = 2
