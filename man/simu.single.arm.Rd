@@ -17,19 +17,19 @@ simu.single.arm(
 )
 }
 \arguments{
-\item{m}{Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)}
+\item{n}{Sample size}
 
-\item{targetEvents}{Planned target number of events for Stage 2. Either targetEvents or DCO must be provided.}
+\item{m}{Median survival time}
 
-\item{n1}{Sample size of (dose arm, control arm) at Stage 1. length(n1) must be 2.}
+\item{Lambda}{Enrollment distribution function (CDF)}
 
-\item{n2}{Sample size of the (selected dose arm, control arm). length(n2) must be 2.}
+\item{A}{Enrollment period}
 
-\item{Lambda2}{Enrollment distribution function (CDF) for stage 2.}
+\item{drop}{Dropout rate per month}
 
-\item{Lambda1}{Enrollment distribution function (CDF) for stage 1.}
+\item{DCO}{Data cutoff date for Stage 1}
 
-\item{DCO1}{Data cutoff date for Stage 1}
+\item{targetEvents}{Planned target number of events. Either targetEvents or DCO must be provided.}
 }
 \value{
 Datasets including data1: Stage 1 data with multiple dose arms; data2: Stage 2 data of the selected dose arm and control arm with data2[\link{j}] for jth analysis. Each dataset includes variables
@@ -42,14 +42,7 @@ Datasets including data1: Stage 1 data with multiple dose arms; data2: Stage 2 d
 \item{calendarCutOff}{Data CutOff Time (DCO);}
 \item{survTimeCut}{Survival time after cut}
 \item{cnsrCut}{Censor status after cut}
-}
-The function also returns a dataframe decision with variables:
-\describe{
-\item{z}{log rank z value for each dose compared to control using stage 1 data}
-\item{p}{log rank p value for each dose compared to control using stage 1 data}
-\item{adj.p}{adjusted log rank p value for selected dose arm}
-\item{adj.z}{adjusted log rank p value for selected dose arm}
-\item{selected}{Selected dose arm, applicable for data2 only}
+\item{analysis}{Sequence of analysis}
 }
 }
 \description{

@@ -53,9 +53,9 @@ Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 enrollment.hold=4)
 
-sel = select.dose (data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR")
+select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR")
 
-o=conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR",
+conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR",
 targetEvents = c(300, 380), method = "Independent Incremental")
 
 #Example (2): Stage 1: 4 arms; 3 dose levels; each arm 50 patients.
@@ -68,14 +68,14 @@ targetEvents = c(300, 380), method = "Independent Incremental")
 
 
 p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
-orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+orr = c(0.25, 0.3, 0.2, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
 Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 enrollment.hold=4)
 
 select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "ORR")
 
-o=conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "ORR",
+conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "ORR",
 targetEvents = c(300, 380), method = "Independent Incremental")
 
 

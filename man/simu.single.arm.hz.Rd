@@ -2,7 +2,7 @@
 % Please edit documentation in R/simu.single.arm.hz.R
 \name{simu.single.arm.hz}
 \alias{simu.single.arm.hz}
-\title{Simulate a single arm survival data with non-uniform enrollment distribution and drop-off}
+\title{Simulate a single arm survival data with non-uniform enrollment distribution and drop-off considering correlation with ORR}
 \usage{
 simu.single.arm.hz(
   n = 100,
@@ -19,24 +19,27 @@ simu.single.arm.hz(
 )
 }
 \arguments{
-\item{m}{Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)}
+\item{n}{Sample size}
 
-\item{targetEvents}{Planned target number of events for Stage 2. Either targetEvents or DCO must be provided.}
+\item{m}{Median survival time}
 
-\item{n1}{Sample size of (dose arm, control arm) at Stage 1. length(n1) must be 2.}
+\item{orr}{Objective response (binary: 1 = response, 0 = non-response)}
 
-\item{n2}{Sample size of the (selected dose arm, control arm). length(n2) must be 2.}
+\item{rho}{Correlation between ORR and time to event endpoint}
 
-\item{Lambda2}{Enrollment distribution function (CDF) for stage 2.}
+\item{Lambda}{Enrollment distribution function (CDF)}
 
-\item{Lambda1}{Enrollment distribution function (CDF) for stage 1.}
+\item{A}{Enrollment period}
 
-\item{DCO1}{Data cutoff date for Stage 1}
+\item{drop}{Dropout rate per month}
+
+\item{DCO}{Data cutoff date for Stage 1}
+
+\item{targetEvents}{Planned target number of events. Either targetEvents or DCO must be provided.}
 }
 \value{
 Datasets including data1: Stage 1 data with multiple dose arms; data2: Stage 2 data of the selected dose arm and control arm with data2[\link{j}] for jth analysis. Each dataset includes variables
 \describe{
-\item{treatment}{treatment group with values of "control", "dose 1", "dose 2", ...}
 \item{enterTime}{Time of randomization in calendar time}
 \item{calendarTime}{the time when event/censoring occurred in calendar time}
 \item{survTime}{Survival time for analysis, = calendarTime - enterTime}
@@ -44,6 +47,7 @@ Datasets including data1: Stage 1 data with multiple dose arms; data2: Stage 2 d
 \item{calendarCutOff}{Data CutOff Time (DCO);}
 \item{survTimeCut}{Survival time after cut}
 \item{cnsrCut}{Censor status after cut}
+\item{analysis}{Sequence of analysis}
 }
 The function also returns a dataframe decision with variables:
 \describe{
@@ -56,16 +60,17 @@ The function also returns a dataframe decision with variables:
 }
 \description{
 This functions simulates trials that have multiple dose arms at Stage 1 and the best dose is always selected after Stage 1 and perform multiple analyses at Stage 2
-The function returns multiple datasets including at end of Stage 1 (all dose arms) and at each of analysis at Stage 2
+The function returns multiple datasets including at end of Stage 1 (all dose arms) and at each of analysis at Stage 2.
+Compared to function simu.single.arm(), this function considers the correlation with ORR, while the former does not.
 }
 \examples{
  
-dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = 16, targetEvents = NULL)
+dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = 16, targetEvents = NULL)
 
-dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = c(16, 28), targetEvents = NULL)
+dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = c(16, 28), targetEvents = NULL)
 
-dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = NULL, targetEvents = 40)
+dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = NULL, targetEvents = 40)
 
-dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = NULL, targetEvents = c(40, 60))
+dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = NULL, targetEvents = c(40, 60))
 
 }
