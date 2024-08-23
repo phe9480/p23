@@ -40,7 +40,7 @@
 #' #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
 #'
 #' #Dose selection decision is NOT based on ORR.
-#' simu.power.p23(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9, 9, 9, 9), 
+#' simu.power.p23.parallel(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9, 9, 9, 9), 
 #' orr = NULL, rho = NULL, dose_selection_endpoint = "not ORR",
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
@@ -48,14 +48,14 @@
 #' alpha=0.025, method = "Independent Incremental", nCore = 8)
 #' 
 #' #Example (2): #Dose selection decision based on ORR
-#' simu.power.p23(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' simu.power.p23.parallel(nSim=100000, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
 #' orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 #' enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
-#' alpha=0.025, method = "Independent Incremental", nCore = 8)
+#' alpha=0.025, method = "Independent Incremental", nCore = 10)
 #' 
-#' simu.power.p23(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' simu.power.p23.parallel(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
 #' orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
@@ -64,8 +64,6 @@
 #' 
 #' @export 
 #' 
-
-
 # simu.power.p23.onecore(bd.z=2)
 
 simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
@@ -197,8 +195,8 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
   o$cum.pow = cum.pow
   o$bd.z = bd.z
   
-  o$selection = colSums(select.all)/(nsim_per_cluster*nCore)
-  o$s=s.all
+  o$selection = colSums(select.all)/nSim
+  #o$s=s.all
   
   # Stop the cluster
   parallel::stopCluster(cl)
