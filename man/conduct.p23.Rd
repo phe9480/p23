@@ -9,7 +9,8 @@ conduct.p23(
   DCO1 = 16,
   targetEvents2 = c(300, 380),
   dose_selection_endpoint = "ORR",
-  method = "Independent Incremental"
+  method = "Independent Incremental",
+  multiplicity.method = "simes"
 )
 }
 \arguments{
@@ -21,9 +22,7 @@ conduct.p23(
 
 \item{dose_selection_endpoint}{Endpoint for dose selection at Stage 1. "ORR" or "not ORR"}
 
-\item{method}{Options include "Independent Incremental": z1 at dose selection and z2 is from dose selection to kth analysis at stage 2;
-"Disjoint Subjects": z1 is at kth analysis for stage 1 subjects; z2 is at the kth analysis for stage 2 subjects. z1 will be adjusted by multiplicity and closed testing procedure at each analysis.
-"Mixture": Only consider disjoint subjects at first analysis in stage 2. Starting from the 2nd analysis, consider independent incremental methods. Only z1 at 1st analysis will be adjusted by multiplicity and closed testing procedure.}
+\item{method}{"simes", "Dunnett".}
 }
 \value{
 If method is "Independent Incremental", return an object with variables

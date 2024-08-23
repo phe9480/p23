@@ -30,7 +30,7 @@ comb.pvalue.p23(
 
 \item{selected.dose}{Selected dose. If NULL, the dose will be determined based on max(z1\link{i, }) for each trial i}
 
-\item{method}{"simes", "Dunnett". Currently only "simes" method is implemented.}
+\item{method}{"simes", "Dunnett".}
 }
 \value{
 Returned values include:
@@ -56,11 +56,17 @@ Multiple testing adjustment method is Simes method for each family wise hypothes
 Select 3rd dose to proceed to Stage 2. At Stage 2, the incremental z test statistic is z2 = 2.1 and the rejection boundary is 1.96.
 
 
-comb.pvalue.p23(z1=matrix(c(0.784, 1.118, 1.941), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2)
+comb.pvalue.p23(z1=matrix(c(0.784, 1.118, 1.941), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="simes")
 
-comb.pvalue.p23(z1=matrix(c(0.784, 1.118), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2)
+comb.pvalue.p23(z1=matrix(c(0.784, 1.118, 1.941), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="dunnett")
 
-comb.pvalue.p23(z1=matrix(c(0.784), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2)
+comb.pvalue.p23(z1=matrix(c(0.784, 1.118), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="simes")
+
+comb.pvalue.p23(z1=matrix(c(0.784, 1.118), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="dunnett")
+
+comb.pvalue.p23(z1=matrix(c(0.784), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="simes")
+
+comb.pvalue.p23(z1=matrix(c(0.784), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="dunnett")
 
 #Example (2): check type I error by simulations for a weighted z based on two independent z1 and z2.
 
@@ -70,10 +76,10 @@ z1 = matrix(NA, nrow=nSim, ncol=3)
 for (j in 1:3){z1[ ,j] = rnorm(nSim)}
 z2 = rnorm(nSim)
 
-o=comb.pvalue.p23(z1=z1,  z2 = z2, bd.z=1.96, w=0.2)
+o=comb.pvalue.p23(z1=z1,  z2 = z2, bd.z=1.96, w=0.2, method="simes")
 
 #Example (3). w is random between 0 and 1
-o=comb.pvalue.p23(z1=z1,  z2 = z2, bd.z=1.96, w=runif(nSim))
+o=comb.pvalue.p23(z1=z1,  z2 = z2, bd.z=1.96, w=runif(nSim), method="simes")
 
 #Example (4): Stage 1: 4 arms; 3 dose levels; each arm 50 patients.
 #Stage 2: additional 200 patients per arm will be enrolled at stage 2
@@ -83,12 +89,12 @@ o=comb.pvalue.p23(z1=z1,  z2 = z2, bd.z=1.96, w=runif(nSim))
 #Dose selection will be based on data cut at 16 months
 #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
  
-p23trial = simu.ph23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
 Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 enrollment.hold=4)
 
-sel = select.dose (data=p23trial, DCO1=16)
+sel = select.dose.p23 (data=p23trial, DCO1=16)
 
 o=conduct.p23(data=p23trial, DCO1=16, targetEvents = c(300, 380), method = "Independent Incremental")
 
@@ -96,12 +102,17 @@ o=conduct.p23(data=p23trial, DCO1=16, targetEvents = c(300, 380), method = "Inde
 bd.z = actualBounds(planned.events=c(300, 380), act.events=c(300, 380), sf=gsDesign::sfLDOF, alpha=0.025)$actual.z
 #2.268527 2.022098
 
-IA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[1], bd.z=bd.z[1], w=o$w[1])
-FA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], bd.z=bd.z[2], w=o$w[2])
+IA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[1], bd.z=bd.z[1], w=o$w[1], method="simes")
+FA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], bd.z=bd.z[2], w=o$w[2], method="simes")
+
+IA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[1], bd.z=bd.z[1], w=o$w[1], method="dunnett")
+FA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], bd.z=bd.z[2], w=o$w[2], method="dunnett")
 
 gsd.power(z = cbind(IA$comb.z, FA$comb.z), bd.z=bd.z)
 
 #Force the selected dose = 2, which may be based on ORR selection at Stage 1
-comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], selected.dose = 2, bd.z=bd.z[2], w=o$w[2])
+comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], selected.dose = 2, bd.z=bd.z[2], w=o$w[2], method="simes")
+
+comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], selected.dose = 2, bd.z=bd.z[2], w=o$w[2], method="dunnett")
 
 }
