@@ -124,13 +124,15 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
   o = list()
   o$cum.pow = cum.pow
   o$bd.z = bd.z
+  o$multiplicity.method = multiplicity.method
+  o$method = method
   
   selection = rep(NA, n.arms-1)
   for (j in 1:(n.arms-1)) {
     selection[j] = sum(s == j) / nSim
   }
   o$selection = selection
-  o$s=s
+  #o$s=s
   
   return(o)
 }

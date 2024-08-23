@@ -15,6 +15,7 @@
 #' @param targetEvents2 Planned target number of events for Stage 2. Either targetEvents2 must be provided. 
 #' @param alpha Type I error (one-sided) for testing the selected dose, usually 0.025.
 #' @param sf Spending functions. acceptable options include all spending functions in gsDesign R package, for example, "gsDesign::sfLDOF"
+#' @param multiplicity.method Method for multiplicity adjustment. "simes" or "dunnett".
 #' @param method Options include "Independent Incremental": z1 at dose selection and z2 is from dose selection to kth analysis at stage 2; 
 #' "Disjoint Subjects": z1 is at kth analysis for stage 1 subjects; z2 is at the kth analysis for stage 2 subjects. z1 will be adjusted by multiplicity and closed testing procedure at each analysis.
 #' "Mixture": Only consider disjoint subjects at first analysis in stage 2. Starting from the 2nd analysis, consider independent incremental methods. Only z1 at 1st analysis will be adjusted by multiplicity and closed testing procedure.
@@ -60,7 +61,14 @@
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 #' enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
-#' alpha=0.025, method = "Disjoint Subjects", nCore = 8)
+#' alpha=0.025, multiplicity.method = "simes", method = "Disjoint Subjects", nCore = 8)
+#' 
+#' simu.power.p23.parallel(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+#' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+#' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+#' enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
+#' alpha=0.025, multiplicity.method = "dunnett", method = "Disjoint Subjects", nCore = 8)
 #' 
 #' @export 
 #' 
@@ -109,7 +117,7 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
                            Lambda1 = Lambda1, A1 = A1, 
                            Lambda2 = Lambda2, A2 = A2, enrollment.hold=enrollment.hold)
       
-      o=conduct.p23(data=p23i, DCO1=DCO1, dose_selection_endpoint = dose_selection_endpoint, targetEvents2 = targetEvents2, method = method)
+      o=conduct.p23(data=p23i, DCO1=DCO1, dose_selection_endpoint = dose_selection_endpoint, targetEvents2 = targetEvents2, method = method, multiplicity.method=multiplicity.method)
       s[i] = o$s
       
       if (method == "Independent Incremental") {
@@ -196,6 +204,8 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
   o$bd.z = bd.z
   
   o$selection = colSums(select.all)/nSim
+  o$multiplicity.method = multiplicity.method
+  o$method = method
   #o$s=s.all
   
   # Stop the cluster
