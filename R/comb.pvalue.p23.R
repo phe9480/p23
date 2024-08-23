@@ -11,7 +11,7 @@
 #' @param w weight for stage 1 z statistic. If w is a single number, all trials use the same weight in p value combination.
 #' @param bd.z rejection boundary in z scale for the combination test
 #' @param selected.dose Selected dose. If NULL, the dose will be determined based on max(z1[i, ]) for each trial i
-#' @param method "simes", "Dunnett". Currently only "simes" method is implemented.
+#' @param method "simes", "Dunnett".
 #' 
 #' @return Returned values include:
 #' \describe{
@@ -32,11 +32,17 @@
 #' Select 3rd dose to proceed to Stage 2. At Stage 2, the incremental z test statistic is z2 = 2.1 and the rejection boundary is 1.96.
 #' 
 #' 
-#' comb.pvalue.p23(z1=matrix(c(0.784, 1.118, 1.941), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2)
+#' comb.pvalue.p23(z1=matrix(c(0.784, 1.118, 1.941), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="simes")
 #' 
-#' comb.pvalue.p23(z1=matrix(c(0.784, 1.118), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2)
+#' comb.pvalue.p23(z1=matrix(c(0.784, 1.118, 1.941), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="dunnett")
 #' 
-#' comb.pvalue.p23(z1=matrix(c(0.784), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2)
+#' comb.pvalue.p23(z1=matrix(c(0.784, 1.118), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="simes")
+#' 
+#' comb.pvalue.p23(z1=matrix(c(0.784, 1.118), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="dunnett")
+#' 
+#' comb.pvalue.p23(z1=matrix(c(0.784), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="simes")
+#' 
+#' comb.pvalue.p23(z1=matrix(c(0.784), nrow=1),  z2 = 2.1, bd.z=1.96, w=0.2, method="dunnett")
 #' 
 #' #Example (2): check type I error by simulations for a weighted z based on two independent z1 and z2.
 #' 
@@ -46,10 +52,10 @@
 #' for (j in 1:3){z1[ ,j] = rnorm(nSim)}
 #' z2 = rnorm(nSim)
 #' 
-#' o=comb.pvalue.p23(z1=z1,  z2 = z2, bd.z=1.96, w=0.2)
+#' o=comb.pvalue.p23(z1=z1,  z2 = z2, bd.z=1.96, w=0.2, method="simes")
 #' 
 #' #Example (3). w is random between 0 and 1
-#' o=comb.pvalue.p23(z1=z1,  z2 = z2, bd.z=1.96, w=runif(nSim))
+#' o=comb.pvalue.p23(z1=z1,  z2 = z2, bd.z=1.96, w=runif(nSim), method="simes")
 #' 
 #' #Example (4): Stage 1: 4 arms; 3 dose levels; each arm 50 patients.
 #' #Stage 2: additional 200 patients per arm will be enrolled at stage 2
@@ -59,12 +65,12 @@
 #' #Dose selection will be based on data cut at 16 months
 #' #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
 #'  
-#' p23trial = simu.ph23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+#' p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 #' enrollment.hold=4)
 #' 
-#' sel = select.dose (data=p23trial, DCO1=16)
+#' sel = select.dose.p23 (data=p23trial, DCO1=16)
 #' 
 #' o=conduct.p23(data=p23trial, DCO1=16, targetEvents = c(300, 380), method = "Independent Incremental")
 #' 
@@ -72,13 +78,18 @@
 #' bd.z = actualBounds(planned.events=c(300, 380), act.events=c(300, 380), sf=gsDesign::sfLDOF, alpha=0.025)$actual.z
 #' #2.268527 2.022098
 #' 
-#' IA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[1], bd.z=bd.z[1], w=o$w[1])
-#' FA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], bd.z=bd.z[2], w=o$w[2])
+#' IA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[1], bd.z=bd.z[1], w=o$w[1], method="simes")
+#' FA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], bd.z=bd.z[2], w=o$w[2], method="simes")
+#' 
+#' IA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[1], bd.z=bd.z[1], w=o$w[1], method="dunnett")
+#' FA=comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], bd.z=bd.z[2], w=o$w[2], method="dunnett")
 #' 
 #' gsd.power(z = cbind(IA$comb.z, FA$comb.z), bd.z=bd.z)
 #' 
 #' #Force the selected dose = 2, which may be based on ORR selection at Stage 1
-#' comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], selected.dose = 2, bd.z=bd.z[2], w=o$w[2])
+#' comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], selected.dose = 2, bd.z=bd.z[2], w=o$w[2], method="simes")
+#' 
+#' comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], selected.dose = 2, bd.z=bd.z[2], w=o$w[2], method="dunnett")
 #' 
 #' @export 
 #' 
@@ -112,26 +123,40 @@ comb.pvalue.p23 = function(z1, z2, p1=NULL, p2=NULL, bd.z=1.96, w=0.2, selected.
   #cbind(z, zs, ps, s)
   ps = 1-pnorm(zs) #raw p value for selected dose
   
-  #Simes method for adjustment
-  
+  #Simes and dunnett methods for adjustment
   p = 1 - pnorm(z1)
-  simes.p3 = rep(NA, N) #adjusted p by all doses for stage 1 on the selected dose s
-  if (n.doses > 1) {simes.p2 = matrix(NA, nrow=N, ncol=n.doses-1)} #adjusted p by all 2 doses that includes s
   p1s = rep(NA, N) #final adjusted p for stage 1 on the selected dose s with Closed testing procedure
   
   if (n.doses > 1) {
-  for (i in 1:N){
-    #adjustment for all p values
-    simes.p3[i] = simes(p[i,])
+    if (method == "simes") {
+      simes.p3 = rep(NA, N) #adjusted p by all doses for stage 1 on the selected dose s
+      simes.p2 = matrix(NA, nrow=N, ncol=n.doses-1)
     
-    #adjustment for any 2 p values that includes s
-    unselected = (1:n.doses)[-s[i]]
-      for (j in 1:length(unselected)){
-        simes.p2[i,j] = simes(c(p[i, s[i]], p[i,unselected[j]]))
+      for (i in 1:N){
+        #adjustment for all p values
+        simes.p3[i] = simes(p[i,])
+    
+        #adjustment for any 2 p values that includes s
+        unselected = (1:n.doses)[-s[i]]
+        for (j in 1:length(unselected)){simes.p2[i,j] = simes(c(p[i, s[i]], p[i,unselected[j]]))}
+        #final adjusted p by CTP
+        p1s[i] = max(simes.p3[i], simes.p2[i,], p[i, s[i]])
       }
-    #final adjusted p by CTP
-    p1s[i] = max(simes.p3[i], simes.p2[i,], p[i, s[i]])
-  }
+    } else if (method == "dunnett"){
+      dunnett.p3 = rep(NA, N) #adjusted p by all doses for stage 1 on the selected dose s
+      dunnett.p2 = matrix(NA, nrow=N, ncol=n.doses-1)
+      
+      for (i in 1:N){
+        #adjustment for all p values
+        dunnett.p3[i] = dunnett(p[i,])
+        
+        #adjustment for any 2 p values that includes s
+        unselected = (1:n.doses)[-s[i]]
+        for (j in 1:length(unselected)){dunnett.p2[i,j] = dunnett(c(p[i, s[i]], p[i,unselected[j]]))}
+        #final adjusted p by CTP
+        p1s[i] = max(dunnett.p3[i], dunnett.p2[i,], p[i, s[i]])
+      }
+    }
   } else {
     p1s = ps
   }
@@ -156,6 +181,7 @@ comb.pvalue.p23 = function(z1, z2, p1=NULL, p2=NULL, bd.z=1.96, w=0.2, selected.
   o$unadj.zs = zs
   o$adj.zs = z1s
   o$comb.z = comb.z
+  o$method = method
   
   selection = rep(NA, n.doses)
   if (N > 1){ 
