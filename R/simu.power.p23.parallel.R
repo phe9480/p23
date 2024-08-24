@@ -209,7 +209,7 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
   #o$selection = colSums(select.all)/nSim
   o$multiplicity.method = multiplicity.method
   o$method = method
-  o$s=s.all
+  #o$s=s.all
   
   n.arms = length(n1)
   selection = rep(NA, n.arms-1)
