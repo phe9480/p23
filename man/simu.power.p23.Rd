@@ -38,6 +38,12 @@ simu.power.p23(
 
 \item{m}{Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)}
 
+\item{orr}{ORR for each arm. length(orr) = length(m).}
+
+\item{rho}{Correlation between ORR and time to event endpoint}
+
+\item{dose_selection_endpoint}{Dose selection end point: "ORR" or "not ORR"}
+
 \item{Lambda1}{Enrollment distribution function (CDF) for stage 1.}
 
 \item{A1}{Enrollment period for Stage 1}
@@ -112,5 +118,9 @@ Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
 alpha=0.025, method = "Mixture")
+
+simu.power.p23(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
+alpha=0.025, multiplicity.method = "dunnett", method = "Disjoint Subjects")
 
 }

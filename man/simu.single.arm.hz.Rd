@@ -2,7 +2,8 @@
 % Please edit documentation in R/simu.single.arm.hz.R
 \name{simu.single.arm.hz}
 \alias{simu.single.arm.hz}
-\title{Simulate a single arm survival data with non-uniform enrollment distribution and drop-off considering correlation with ORR}
+\title{Simulate a single arm survival data with non-uniform enrollment distribution
+and drop-off considering correlation with ORR}
 \usage{
 simu.single.arm.hz(
   n = 100,
@@ -35,15 +36,19 @@ simu.single.arm.hz(
 
 \item{DCO}{Data cutoff date for Stage 1}
 
-\item{targetEvents}{Planned target number of events. Either targetEvents or DCO must be provided.}
+\item{targetEvents}{Planned target number of events. Either targetEvents or
+DCO must be provided.}
 }
 \value{
-Datasets including data1: Stage 1 data with multiple dose arms; data2: Stage 2 data of the selected dose arm and control arm with data2[\link{j}] for jth analysis. Each dataset includes variables
+Datasets including data1: Stage 1 data with multiple dose arms; data2:
+Stage 2 data of the selected dose arm and control arm with data2((j))
+for jth analysis. Each dataset includes variables
 \describe{
 \item{enterTime}{Time of randomization in calendar time}
 \item{calendarTime}{the time when event/censoring occurred in calendar time}
 \item{survTime}{Survival time for analysis, = calendarTime - enterTime}
-\item{cnsr}{censor status (0=event; 1=censor) before administrative censoring due to data cut}
+\item{cnsr}{censor status (0=event; 1=censor) before administrative censoring
+due to data cut}
 \item{calendarCutOff}{Data CutOff Time (DCO);}
 \item{survTimeCut}{Survival time after cut}
 \item{cnsrCut}{Censor status after cut}
@@ -51,26 +56,38 @@ Datasets including data1: Stage 1 data with multiple dose arms; data2: Stage 2 d
 }
 The function also returns a dataframe decision with variables:
 \describe{
-\item{z}{log rank z value for each dose compared to control using stage 1 data}
-\item{p}{log rank p value for each dose compared to control using stage 1 data}
+\item{z}{log rank z value for each dose compared to control using stage 1}
+\item{p}{log rank p value for each dose compared to control using stage 1}
 \item{adj.p}{adjusted log rank p value for selected dose arm}
 \item{adj.z}{adjusted log rank p value for selected dose arm}
 \item{selected}{Selected dose arm, applicable for data2 only}
 }
 }
 \description{
-This functions simulates trials that have multiple dose arms at Stage 1 and the best dose is always selected after Stage 1 and perform multiple analyses at Stage 2
-The function returns multiple datasets including at end of Stage 1 (all dose arms) and at each of analysis at Stage 2.
-Compared to function simu.single.arm(), this function considers the correlation with ORR, while the former does not.
+This functions simulates trials that have multiple dose arms at Stage 1 and
+the best dose is always selected after Stage 1 and perform multiple analyses
+at Stage 2
+The function returns multiple datasets including at end of Stage 1 (all dose
+arms) and at each of analysis at Stage 2.
+Compared to function simu.single.arm(), this function considers the
+correlation with ORR, while the former does not.
 }
 \examples{
  
-dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = 16, targetEvents = NULL)
+dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,
+Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
+A = 12, drop=0, DCO = 16, targetEvents = NULL)
 
-dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = c(16, 28), targetEvents = NULL)
+dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,
+Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
+A = 12, drop=0, DCO = c(16, 28), targetEvents = NULL)
 
-dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = NULL, targetEvents = 40)
+dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,
+Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
+A = 12, drop=0, DCO = NULL, targetEvents = 40)
 
-dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A = 12, drop=0, DCO = NULL, targetEvents = c(40, 60))
+dat=simu.single.arm.hz(n = 100, m = 10, orr = 0.2, rho = 0.7,
+Lambda = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
+A = 12, drop=0, DCO = NULL, targetEvents = c(40, 60))
 
 }

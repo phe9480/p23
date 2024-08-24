@@ -36,6 +36,12 @@ simu.ph23.hz(
 
 \item{m}{Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)}
 
+\item{orr}{ORR for each arm. length(orr) = length(m).}
+
+\item{rho}{Correlation between ORR and time to event endpoint}
+
+\item{dose_selection_endpoint}{Dose selection end point: "ORR" or "not ORR"}
+
 \item{Lambda1}{Enrollment distribution function (CDF) for stage 1.}
 
 \item{A1}{Enrollment period for Stage 1}

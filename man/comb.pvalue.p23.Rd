@@ -28,7 +28,7 @@ comb.pvalue.p23(
 
 \item{w}{weight for stage 1 z statistic. If w is a single number, all trials use the same weight in p value combination.}
 
-\item{selected.dose}{Selected dose. If NULL, the dose will be determined based on max(z1\link{i, }) for each trial i}
+\item{selected.dose}{Selected dose. If NULL, the dose will be determined based on max(z1(i, )) for each trial i}
 
 \item{method}{"simes", "Dunnett".}
 }

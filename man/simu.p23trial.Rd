@@ -33,6 +33,8 @@ simu.p23trial(
 
 \item{rho}{Correlation between ORR and time to event endpoint}
 
+\item{dose_selection_endpoint}{Endpoint for dose selection. "ORR" or "not ORR"}
+
 \item{Lambda1}{Enrollment distribution function (CDF) for stage 1.}
 
 \item{A1}{Enrollment period for Stage 1}

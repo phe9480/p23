@@ -25,6 +25,8 @@ simu.ph23data(
 )
 }
 \arguments{
+\item{nSim}{Number of simulated trials}
+
 \item{n1}{Sample size of (dose arm, control arm) at Stage 1. length(n1) must be 2.}
 
 \item{n2}{Sample size of the (selected dose arm, control arm). length(n2) must be 2.}
