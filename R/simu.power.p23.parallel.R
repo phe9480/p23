@@ -6,6 +6,9 @@
 #' @param n1 Stage 1 sample size of each dose and control arm. length(n1) must be number of arms.
 #' @param n2 Stage 2 Sample size of the selected dose and control arm. length(n2) must be 2.
 #' @param m Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)
+#' @param orr ORR for each arm. length(orr) = length(m). 
+#' @param rho Correlation between ORR and time to event endpoint
+#' @param dose_selection_endpoint  Dose selection end point: "ORR" or "not ORR"
 #' @param A1 Enrollment period for Stage 1
 #' @param Lambda1 Enrollment distribution function (CDF) for stage 1.
 #' @param DCO1 Data cutoff date for Stage 1
@@ -203,10 +206,17 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
   o$cum.pow = cum.pow
   o$bd.z = bd.z
   
-  o$selection = colSums(select.all)/nSim
+  #o$selection = colSums(select.all)/nSim
   o$multiplicity.method = multiplicity.method
   o$method = method
-  #o$s=s.all
+  o$s=s.all
+  
+  n.arms = length(n1)
+  selection = rep(NA, n.arms-1)
+  for (j in 1:(n.arms-1)) {
+    selection[j] = sum(s.all == j) / (nsim_per_cluster * nCore)
+  }
+  o$selection = selection
   
   # Stop the cluster
   parallel::stopCluster(cl)
