@@ -9,6 +9,9 @@
 #' @param n1 Sample size for each arm (dose 1, dose 2, ..., control) at Stage 1. length(n1) must be equal to the total number of arms. 
 #' @param n2 Sample size for each arm (selected dose, control). length(n2) must be 2.
 #' @param m Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)
+#' @param orr ORR for each arm. length(orr) = length(m). 
+#' @param rho Correlation between ORR and time to event endpoint
+#' @param dose_selection_endpoint  Dose selection end point: "ORR" or "not ORR"
 #' @param A1 Enrollment period for Stage 1
 #' @param Lambda1 Enrollment distribution function (CDF) for stage 1.
 #' @param DCO1 Data cutoff date for Stage 1
@@ -58,6 +61,7 @@
 #' #power calculation using the standard group sequential boundaries
 #' gsd.power(z = cbind(IA$comb.z, FA$comb.z), bd.z=bd.z)
 #' 
+#' @importFrom dplyr rename
 #' @export 
 #' 
 simu.ph23.hz <- function(nSim=1000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m = c(9, 11, 13, 8), 
@@ -175,7 +179,6 @@ simu.ph23.hz <- function(nSim=1000, n1 = c(50, 50, 50, 50), n2 = c(200, 200), m 
    o$z.c = z.c
    o$w = w
    o$selected.dose = s
-   o$example.data = dat.comb
    o$orr.diff = orr.diff
    
    return(o)

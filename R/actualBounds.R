@@ -25,6 +25,9 @@
 #' 
 #' actualBounds(planned.events=c(126, 210), act.events=c(140, 250), sf=gsDesign::sfLDOF, alpha=0.025)
 #' 
+#' @importFrom stats pnorm qnorm
+#' @importFrom gsDesign gsDesign
+#' @importFrom mvtnorm pmvnorm
 #' @export
 #' 
 actualBounds = function(planned.events=c(126, 210), act.events=c(140, 250), sf=gsDesign::sfLDOF, alpha=0.025){

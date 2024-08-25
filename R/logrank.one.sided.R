@@ -25,7 +25,7 @@
 #' 
 #' logrank.one.sided(time, cnsr, group)
 #' 
-#' 
+#' @importFrom survival survdiff
 #' @export 
 #' 
 logrank.one.sided = function(time, cnsr, group){

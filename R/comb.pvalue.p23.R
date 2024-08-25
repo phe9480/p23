@@ -10,7 +10,7 @@
 #' @param p2 stage 2 p value. p2 = 1-pnorm(z2). Either z2 or p2 must be provided.
 #' @param w weight for stage 1 z statistic. If w is a single number, all trials use the same weight in p value combination.
 #' @param bd.z rejection boundary in z scale for the combination test
-#' @param selected.dose Selected dose. If NULL, the dose will be determined based on max(z1[i, ]) for each trial i
+#' @param selected.dose Selected dose. If NULL, the dose will be determined based on max(z1(i, )) for each trial i
 #' @param method "simes", "Dunnett".
 #' 
 #' @return Returned values include:
@@ -91,6 +91,7 @@
 #' 
 #' comb.pvalue.p23(z1=matrix(o$z1, nrow=1),  z2 = o$z2[2], selected.dose = 2, bd.z=bd.z[2], w=o$w[2], method="dunnett")
 #' 
+#' @importFrom stats pnorm qnorm
 #' @export 
 #' 
 comb.pvalue.p23 = function(z1, z2, p1=NULL, p2=NULL, bd.z=1.96, w=0.2, selected.dose = NULL, method="simes"){

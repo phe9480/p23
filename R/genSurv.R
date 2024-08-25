@@ -57,7 +57,8 @@
 #' km <- survival::survfit(survival::Surv(t, rep(1, length(t))) ~ 1)
 #' plot(km, xlab="Month Since Randomization",ylab="Survival")
 #' 
-#' 
+#' @importFrom stats rexp rweibull 
+#' @importFrom nphsim rpwexp
 #' @export
 #' 
 genSurv = function(dist = "exponential", n = 1, lam=log(2)/10, shape=NULL, scale=NULL,
