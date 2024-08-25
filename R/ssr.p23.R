@@ -1,0 +1,70 @@
+#' Conduct Sample Size Re-estimation for a phase 2/3 dose optimization trial for survival endpoint
+#'
+#' This function calculates new target events at FA. The SSR is only planned at the first analysis in Stage 2.
+#' 
+#' @param data Dataset produced by simu.p23trial function
+#' @param targetEvents2 Planned target number of events for Stage 2. Either targetEvents2 must be provided.
+#' @param selected.dose Selected dose
+#' @param ssr_HR_threshold HR threshold for SSR. Sample size increase when observed HR at IA in stage 2 is greater than the threshold.
+#' @param events_increase Number of events planned to increase if the observed HR > the threshold 
+#' 
+#' @return If method is "Independent Incremental", return an object with variables
+#' \describe{
+#' \item{targetEvents.FA}{New target number of events at final analysis}
+#' \item{ssr}{Indicator variable whether the sample size is increased.}
+#' }
+#' 
+#' @examples
+#' #Example (1): Stage 1: 4 arms; 3 dose levels; each arm 50 patients.
+#' #Stage 2: additional 200 patients per arm will be enrolled at stage 2
+#' #medians for the 4 arms: 9, 11, 13 and control = 8 months
+#' #Enrollment: 12 months uniform in stage 1; 12 months uniform in stage 2
+#' #Holding period: 4 months between stage 1 and 2
+#' #Dose selection will be based on data cut at 16 months
+#' #Stage 2 has 2 planned analyses at 300 and 380 events respectively.
+#'  
+#' p23trial = simu.p23trial(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
+#' orr = NULL, rho = NULL, dose_selection_endpoint = "not ORR",
+#' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+#' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+#' enrollment.hold=4)
+#' 
+#' sel = select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR")
+#' 
+#' #Independent incremental; dose not selected by ORR
+#' ssr.p23(data=p23trial, ssr_HR_threshold = 0.8, events_increase = 30, 
+#' selected.dose=sel$s, targetEvents2 = c(300, 380))
+#' 
+#' @importFrom survival coxph Surv
+#' @export 
+#' 
+ssr.p23 = function(data=NULL, targetEvents2 = c(300, 380), selected.dose=2,
+                   ssr_HR_threshold = 0.8, events_increase = 30){
+
+  #1. Assemble the trial data combining stage 1 and stage 2 for selected dose + control
+  dat23 = data[data$group == 0 | data$group == selected.dose, ]
+  
+  #2. data cut for each analysis
+  dat23.1 = f.dataCut(data=dat23, targetEvents=targetEvents2[1])
+  
+  #3. SSR decision
+  cox = survival::coxph(survival::Surv(dat23.1$survTimeCut, 1-dat23.1$cnsrCut) ~ dat23.1$group)
+  HR.IA = exp(cox$coefficients)
+  
+  if (HR.IA > ssr_HR_threshold){
+    targetEvents.FA = targetEvents2[2] + events_increase
+  } else {
+    targetEvents.FA = targetEvents2[2]
+  }      
+  if (targetEvents.FA > dim(dat23)[1]) {stop; return("ERROR: New target events at final analysis is more than the current sample size.")}
+  
+  o = list()
+  o$ssr = as.numeric(HR.IA > ssr_HR_threshold)
+  o$targetEvents.FA = targetEvents.FA
+  
+  return(o)
+}  
+  
+
+
+
