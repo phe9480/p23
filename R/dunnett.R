@@ -5,6 +5,9 @@
 #' @param p A vector of individual raw p values in J. 
 #'
 #' @return Adjusted p values using Dunnett procedure
+#' 
+#' @importFrom mvtnorm pmvnorm
+#' @importFrom stats qnorm
 #' @export
 #'
 #' @examples

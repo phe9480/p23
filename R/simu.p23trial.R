@@ -10,6 +10,7 @@
 #' @param m Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)
 #' @param orr Objective response (binary: 1 = response, 0 = non-response). Must be available for all doses. length(orr) = number of arms. The last one is for control arm.
 #' @param rho Correlation between ORR and time to event endpoint
+#' @param dose_selection_endpoint Endpoint for dose selection. "ORR" or "not ORR"
 #' @param A1 Enrollment period for Stage 1
 #' @param Lambda1 Enrollment distribution function (CDF) for stage 1.
 #' @param enrollment.hold Holding period in months after DCO1 of Stage 1 prior to enrollment of Stage 2 patients. 0 means seamless enrollment.
@@ -56,7 +57,7 @@
 #' 
 #' table(p23trial$stage)
 #' 
-#' 
+#' @importFrom data.table rbindlist
 #' 
 #' @export 
 #' 

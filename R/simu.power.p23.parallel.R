@@ -73,6 +73,8 @@
 #' enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
 #' alpha=0.025, multiplicity.method = "dunnett", method = "Disjoint Subjects", nCore = 8)
 #' 
+#' @importFrom parallel detectCores makeCluster parLapply stopCluster
+#' @importFrom gsDesign gsDesign
 #' @export 
 #' 
 # simu.power.p23.onecore(bd.z=2)
