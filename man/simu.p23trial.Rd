@@ -92,6 +92,4 @@ head(p23trial)
 
 table(p23trial$stage)
 
-
-
 }

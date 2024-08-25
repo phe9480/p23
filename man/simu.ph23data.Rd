@@ -20,8 +20,7 @@ simu.ph23data(
   A2 = 12,
   enrollment.hold = 4,
   targetEvents2 = c(300, 380),
-  method = "Independent Incremental",
-  extended.followup = FALSE
+  method = "Independent Incremental"
 )
 }
 \arguments{

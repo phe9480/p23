@@ -35,5 +35,4 @@ data = as.data.frame(cbind(time, cnsr, group))
 
 logrank.one.sided(time, cnsr, group)
 
-
 }

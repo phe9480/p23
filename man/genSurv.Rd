@@ -81,5 +81,4 @@ t = genSurv(dist = "customized", n = 100, S=function(t){exp(-log(2)/12*t)})
 km <- survival::survfit(survival::Surv(t, rep(1, length(t))) ~ 1)
 plot(km, xlab="Month Since Randomization",ylab="Survival")
 
-
 }
