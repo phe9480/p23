@@ -132,7 +132,8 @@ simu.power.p23.ssr = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(
   s = rep(NA, nSim) #selected dose
   new.ss = rep(NA, nSim) #indicator whether sample size increased
   DS.cum.rej1 = DS.cum.rej2 = rep(NA, nSim) #cum rejection at IA or FA for DS method
-    
+  DS.bd.z = matrix(NA, nrow=nSim, ncol=K)
+  
   for (i in 1:nSim){
     p23i = simu.p23trial(n1 = n1, n2 = n2, m = m, 
                          orr = orr, rho = rho, dose_selection_endpoint = dose_selection_endpoint,
@@ -185,6 +186,7 @@ simu.power.p23.ssr = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(
       #FA
       DS.cum.rej2[i] = as.numeric(o$z.tilde[1] >=  bd.zi[1] || o$z.tilde[2] >=  bd.zi[2])
       
+      DS.bd.z[i, ] = bd.zi
     }
   }
   
@@ -201,7 +203,8 @@ simu.power.p23.ssr = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(
   if (method == "Independent Incremental" || method == "Mixture") {
     o$bd.z = bd.z
   } else if (method == "Disjoint Subjects"){
-    o$bd.z = bd.zi[1:min(length(bd.zi), 1000)]
+    #only output 100 rows for rejection boundaries
+    o$bd.z = DS.bd.z[1:min(nrow(DS.bd.z), 100),]
   }
   o$multiplicity.method = multiplicity.method
   o$method = method

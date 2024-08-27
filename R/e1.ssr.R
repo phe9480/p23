@@ -26,10 +26,10 @@
 #' @export 
 #' 
 e1.ssr = function(n1 = rep(50, 4), n2 = rep(200, 4), m = c(9,9, 9, 9), 
-                                 Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
-                                 A1 = 12,
-                                 Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)},
-                                 enrollment.hold=4, targetEvents = 380){
+                  Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
+                  A1 = 12,
+                  Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)},
+                  enrollment.hold=4, targetEvents = 380){
   n.arms = length(n1)
   E1 = rep(NA, n.arms-1)
   for (i in 1:(n.arms-1)) {
