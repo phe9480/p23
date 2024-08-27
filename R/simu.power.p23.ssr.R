@@ -84,7 +84,7 @@
 #' enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
 #' alpha=0.025, method = "Mixture")
 #' 
-#' simu.power.p23.ssr(nSim=100, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' o=simu.power.p23.ssr(nSim=100, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
 #' orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
 #' ssr_HR_threshold = 0.8, events_increase = 30,
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
@@ -111,17 +111,15 @@ simu.power.p23.ssr = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(
   #Number of analyses in stage 2
   K = length(targetEvents2)
   if (K != 2) {stop; return("ERROR: Only 2 analyses in stage 2 are considered in SSR. The length of targetEvents2 must be 2.")}
-  
-  n2 = c(rep(n2[1], n.arms-1), n2[2])
-  
+
   #Number of arms
   n.arms = length(n1)
+  n2 = c(rep(n2[1], n.arms-1), n2[2])
   
   #Expected number of events for Stage 1 subjects at time of originally planned IA and FA
-  e1.FA0 = exp.e.stage1.subj.ssr(n1 = n1, n2 = n2, m = m, Lambda1 = Lambda1, 
-                                 A1 = A1,Lambda2 = Lambda2,
-                                 enrollment.hold=enrollment.hold, 
-                                 targetEvents = targetEvents2[2])
+  e1.FA0 = e1.ssr(n1 = n1, n2 = n2, m = m, Lambda1 = Lambda1, A1 = A1,
+                  Lambda2 = Lambda2, enrollment.hold=enrollment.hold, 
+                  targetEvents = targetEvents2[2])
   
   #rejection boundary by GSD. The original GSD boundary is still valid in this SSR setting.
   #for independent incremental and mixture approaches
@@ -202,6 +200,8 @@ simu.power.p23.ssr = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(
   o$cum.pow = cum.pow
   if (method == "Independent Incremental" || method == "Mixture") {
     o$bd.z = bd.z
+  } else if (method == "Disjoint Subjects"){
+    o$bd.z = bd.zi[1:min(length(bd.zi), 1000)]
   }
   o$multiplicity.method = multiplicity.method
   o$method = method
