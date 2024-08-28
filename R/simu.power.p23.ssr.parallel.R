@@ -256,7 +256,7 @@ simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 
     newss.all <- c(newss.all, results[[i]]$new.ss)
     DS.cum.rej1.all <- c(DS.cum.rej1.all, results[[i]]$DS.cum.rej1)
     DS.cum.rej2.all <- c(DS.cum.rej2.all, results[[i]]$DS.cum.rej2)
-    DS.bd.z.all <- c(DS.bd.z.all, results[[i]]$DS.bd.z)
+    DS.bd.z.all <- rbind(DS.bd.z.all, results[[i]]$DS.bd.z)
   }
   
   nSim_actual = (nsim_per_cluster * nCore)
@@ -274,7 +274,7 @@ simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 
     o$bd.z = bd.z
   } else if (method == "Disjoint Subjects"){
     #only output 100 rows for rejection boundaries
-    o$bd.z = DS.bd.z[1:min(nrow(DS.bd.z.all), 100),]
+    o$bd.z = DS.bd.z.all[1:min(nrow(DS.bd.z.all), 100),]
   }
   o$multiplicity.method = multiplicity.method
   o$method = method
