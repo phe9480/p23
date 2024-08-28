@@ -1,4 +1,4 @@
-#' Power Calculation by Simulations for Phase 2/3 Inferential Seamless Design with Sample Size Adjustment
+#' #' Power Calculation by Simulations for Phase 2/3 Inferential Seamless Design with Sample Size Adjustment
 #'
 #' This functions calculates the cumulative power by Simulations for Phase 2/3 Inferential Seamless Design with Sample Size Adjustment.
 #' The SSR is only performed at the first interim analysis at Stage 2. Regarding the pre-fixed weights for the FA combination Z,
@@ -32,10 +32,9 @@
 #' @param nCore Number of cores distributed for simulation;
 #' @param seed An integer, or nCore number of integers as random seed for reproducibility;
 #' 
-#' 
 #' @return An object with values:
 #' \describe{
-#' \item{bd.z}{z value rejection boundary at each analysis}
+#' \item{bd.z}{z value rejection boundary at each analysis if method is independent incremental or mixture.}
 #' \item{cum.pow}{Cumulative power}
 #' \item{s}{Selected dose}
 #' \item{selection}{Probability of selection among doses}
@@ -54,7 +53,7 @@
 #' when the observed HR > 0.8.
 #'
 #' #Dose selection decision is NOT based on ORR.
-#' simu.power.p23.ssr(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9, 9, 9, 9), 
+#' simu.power.p23.ssr.parallel(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9, 9, 9, 9), 
 #' orr = NULL, rho = NULL, dose_selection_endpoint = "not ORR",
 #' ssr_HR_threshold = 0.8, events_increase = 30,
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
@@ -63,7 +62,7 @@
 #' alpha=0.025, method = "Independent Incremental")
 #' 
 #' #Example (2): #Dose selection decision based on ORR
-#' simu.power.p23.ssr(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' simu.power.p23.ssr.parallel(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
 #' orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
 #' ssr_HR_threshold = 0.8, events_increase = 30,
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
@@ -71,7 +70,7 @@
 #' enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
 #' alpha=0.025, method = "Independent Incremental")
 #' 
-#' simu.power.p23.ssr(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' simu.power.p23.ssr.parallel(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
 #' orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
 #' ssr_HR_threshold = 0.8, events_increase = 30,
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
@@ -79,7 +78,7 @@
 #' enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
 #' alpha=0.025, method = "Disjoint Subjects")
 #' 
-#' simu.power.p23.ssr(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' simu.power.p23.ssr.parallel(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
 #' orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
 #' ssr_HR_threshold = 0.8, events_increase = 30,
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
@@ -87,7 +86,7 @@
 #' enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
 #' alpha=0.025, method = "Mixture")
 #' 
-#' simu.power.p23.ssr(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+#' simu.power.p23.ssr.parallel(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
 #' orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
 #' ssr_HR_threshold = 0.8, events_increase = 30,
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
@@ -101,36 +100,50 @@
 #' @export 
 #' 
 simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
-                              orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
-                              ssr_HR_threshold = 0.8, events_increase = 30, 
-                              Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
-                              Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
-                              enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), 
-                              alpha=0.025, sf=gsDesign::sfLDOF, multiplicity.method="simes",
-                              method = "Independent Incremental", nCore=NULL, seed=123){
-  
-  simu.power.p23.ssr.onecore <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
-                                        orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+                                        orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, 
+                                        dose_selection_endpoint = "ORR",
                                         ssr_HR_threshold = 0.8, events_increase = 30, 
                                         Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
                                         Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
                                         enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), 
                                         alpha=0.025, sf=gsDesign::sfLDOF, multiplicity.method="simes",
-                                        method = "Independent Incremental", bd.z=bd.z){
+                                        method = "Independent Incremental", nCore=NULL, seed=123){
+  
+  simu.power.p23.ssr.onecore <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
+                                         orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, 
+                                         dose_selection_endpoint = "ORR",
+                                         ssr_HR_threshold = 0.8, events_increase = 30, 
+                                         Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+                                         Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+                                         enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), 
+                                         alpha=0.025, sf=gsDesign::sfLDOF, multiplicity.method="simes",
+                                         method = "Independent Incremental"){
+    
     #Number of analyses in stage 2
     K = length(targetEvents2)
     if (K != 2) {stop; return("ERROR: Only 2 analyses in stage 2 are considered in SSR. The length of targetEvents2 must be 2.")}
     
     #Number of arms
     n.arms = length(n1)
+    n2 = c(rep(n2[1], n.arms-1), n2[2])
     
+    #Expected number of events for Stage 1 subjects at time of originally planned IA and FA
+    e1.FA0 = e1.ssr(n1 = n1, n2 = n2, m = m, Lambda1 = Lambda1, A1 = A1,
+                    Lambda2 = Lambda2, enrollment.hold=enrollment.hold, 
+                    targetEvents = targetEvents2[2])
+    
+    #rejection boundary by GSD. The original GSD boundary is still valid in this SSR setting.
+    #for independent incremental and mixture approaches
+    if (method == "Independent Incremental" || method == "Mixture"){
+      bd.z = gsDesign::gsDesign(k=K,alpha=alpha,timing=targetEvents2/targetEvents2[K],sfu=sf, test.type=1)$upper$bound
+    }
     
     #Combination Z values
     comb.z = matrix(NA, nrow=nSim, ncol=K)
     s = rep(NA, nSim) #selected dose
     new.ss = rep(NA, nSim) #indicator whether sample size increased
-    
-    n2 = c(rep(n2[1], n.arms-1), n2[2])
+    DS.cum.rej1 = DS.cum.rej2 = rep(NA, nSim) #cum rejection at IA or FA for DS method
+    DS.bd.z = matrix(NA, nrow=nSim, ncol=K)
     
     for (i in 1:nSim){
       p23i = simu.p23trial(n1 = n1, n2 = n2, m = m, 
@@ -146,43 +159,51 @@ simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 
                     events_increase = events_increase, 
                     selected.dose=s[i], targetEvents2 = targetEvents2)
       
-      #Find DCO to achieve original targetEvents events
-      f.u = function(u){
-        e1 = fe(DCO = u, r = (n1[s[i]] + n2[s[i]])/(n1[n.arms] + n2[n.arms]), 
-                h0 = function(t){log(2)/m[n.arms]}, S0 = function(t){exp(-log(2)/m[n.arms]*t)}, 
-                h1 = function(t){log(2)/m[s[i]]}, S1 = function(t){exp(-log(2)/m[s[i]]*t)}, 
-                Lambda = Lambda1, n = sum(n1[c(s[i], n.arms)]))$e
-        e2 = fe(DCO = max(u-enrollment.hold-A1, 0), r = (n1[s[i]] + n2[s[i]])/(n1[n.arms] + n2[n.arms]), 
-                h0 = function(t){log(2)/m[n.arms]}, S0 = function(t){exp(-log(2)/m[n.arms]*t)}, 
-                h1 = function(t){log(2)/m[s[i]]}, S1 = function(t){exp(-log(2)/m[s[i]]*t)}, 
-                Lambda = Lambda2, n = sum(n2[c(s[i], n.arms)]))$e
-        return(e1+e2 - targetEvents2[2])
-      }
-      DCO.FA0 = uniroot(f.u, c(16, 1000))$root
-      
-      #Expected events for Stage 1 at original FA: e1.FA0
-      e1.FA0=fe(DCO = DCO.FA0, r = (n1[s[i]] + n2[s[i]])/(n1[n.arms] + n2[n.arms]), 
-                h0 = function(t){log(2)/m[n.arms]}, S0 = function(t){exp(-log(2)/m[n.arms]*t)}, 
-                h1 = function(t){log(2)/m[s[i]]}, S1 = function(t){exp(-log(2)/m[s[i]]*t)}, 
-                Lambda = Lambda1, n = sum(n1[c(s[i], n.arms)]))$e
-      
+      #conduct p23
       o=conduct.p23.ssr(data=p23i, DCO1=DCO1, dose_selection_endpoint = dose_selection_endpoint, 
-                        targetEvents.FA = ssr$targetEvents.FA, e1.FA = e1.FA0,
+                        targetEvents.FA = ssr$targetEvents.FA, e1.FA = e1.FA0[s[i]],
                         targetEvents2 = targetEvents2, method = method, multiplicity.method=multiplicity.method)
       
+      #Test statistics z.tilde
       comb.z[i, ] = o$z.tilde
       new.ss[i] = ssr$ssr
+      
+      #When method = DS, the traditional GSD boundary needs adjustment
+      if (method == "Disjoint Subjects"){
+        dat23 = p23i[p23i$group == 0 | p23i$group == s[i], ]
+        dat23.1 = f.dataCut(data=dat23, targetEvents=targetEvents2[1])
+        dat23.11 = dat23.1[dat23.1$stage == 1, ]
+        
+        #FA after SSR
+        dat23.2star = f.dataCut(data=dat23, targetEvents=ssr$targetEvents.FA)
+        dat23.21star = dat23.2star[dat23.2star$stage == 1, ] #Analysis 2 (FA) stage 1
+        
+        #Observed events for Stage 1 subjects at IA and FA
+        N11 = sum(1-dat23.11$cnsrCut)
+        N21star = sum(1-dat23.21star$cnsrCut)
+        
+        t11 = N11 / targetEvents2[2]; 
+        t1 = targetEvents2[1] / targetEvents2[2]
+        t21 = e1.FA0[s[i]] / targetEvents2[2]; #pre-fixed weight for FA at time of IA
+        t21star =  N21star/ targetEvents2[2];
+        t2star = ssr$targetEvents.FA / targetEvents2[2]
+        
+        correl = corr.DisjointSubjects.p23.ssr(t11=t11, t1=t1, t21=t21, t21star=t21star, t2star=t2star)
+        
+        bd.zi = gsDesign::gsDesign(k=K,alpha=alpha,timing=correl^2,sfu=sf, test.type=1)$upper$bound
+        
+        #IA
+        DS.cum.rej1[i] = as.numeric(o$z.tilde[1] >=  bd.zi[1])
+        #FA
+        DS.cum.rej2[i] = as.numeric(o$z.tilde[1] >=  bd.zi[1] || o$z.tilde[2] >=  bd.zi[2])
+        
+        DS.bd.z[i, ] = bd.zi
+      }
     }
-
-  
-    # selection = rep(NA, n.arms-1)
-    # for (j in 1:(n.arms-1)) {
-    #   selection[j] = sum(s == j) 
-    # }
-    # o$selection = selection
-    # o$s=s
     
-    re = list(comb.z=comb.z, s=s, new.ss=new.ss)
+    re = list(comb.z=comb.z, s=s, new.ss=new.ss,
+              DS.cum.rej1=DS.cum.rej1, DS.cum.rej2=DS.cum.rej2,
+              DS.bd.z=DS.bd.z)
     
     return(re)
   }
@@ -209,6 +230,7 @@ simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 
   #rejection boundary by GSD. The original GSD boundary is still valid in this SSR setting.
   bd.z = gsDesign::gsDesign(k=K,alpha=alpha,timing=targetEvents2/targetEvents2[K],sfu=sf, test.type=1)$upper$bound
   
+  n.arms = length(n1)
   
   # Use parLapply to run in parallel
   results <- parallel::parLapply(cl, seed, fun = simu.power.p23.ssr.onecore,
@@ -219,38 +241,52 @@ simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 
                                  Lambda2 = Lambda2, A2 = A2,
                                  enrollment.hold=enrollment.hold, DCO1 = DCO1, targetEvents2=targetEvents2, 
                                  alpha=alpha, sf=sf, multiplicity.method=multiplicity.method,
-                                 method = method, bd.z=bd.z
+                                 method = method
   )
   
   comb.zall <- c()
   s.all <- c()
   newss.all <- c()
+  DS.cum.rej1.all <- DS.cum.rej2.all <- c()
+  DS.bd.z.all <- c()
   for( i in 1:length(results)){
     comb.zall = rbind(comb.zall, results[[i]]$comb.z)
     # select.all = rbind(select.all, results[[i]]$selection)
     s.all <- c(s.all, results[[i]]$s)
     newss.all <- c(newss.all, results[[i]]$new.ss)
+    DS.cum.rej1.all <- c(DS.cum.rej1.all, results[[i]]$DS.cum.rej1)
+    DS.cum.rej2.all <- c(DS.cum.rej2.all, results[[i]]$DS.cum.rej2)
+    DS.bd.z.all <- c(DS.bd.z.all, results[[i]]$DS.bd.z)
   }
   
-  cum.pow=gsd.power(z = comb.zall, bd.z=bd.z)
+  nSim_actual = (nsim_per_cluster * nCore)
+  cum.pow = rep(NA, K)
+  if (method == "Disjoint Subjects") {
+    cum.pow[1] = sum(DS.cum.rej1.all)/nSim_actual
+    cum.pow[2] = sum(DS.cum.rej2.all)/nSim_actual
+  } else {
+    cum.pow=gsd.power(z = comb.zall, bd.z=bd.z)
+  }
   
   o = list()
   o$cum.pow = cum.pow
-  o$bd.z = bd.z
-  
-  #o$selection = colSums(select.all)/nSim
+  if (method == "Independent Incremental" || method == "Mixture") {
+    o$bd.z = bd.z
+  } else if (method == "Disjoint Subjects"){
+    #only output 100 rows for rejection boundaries
+    o$bd.z = DS.bd.z[1:min(nrow(DS.bd.z.all), 100),]
+  }
   o$multiplicity.method = multiplicity.method
   o$method = method
-  #o$s=s.all
   
-  n.arms = length(n1)
   selection = rep(NA, n.arms-1)
   for (j in 1:(n.arms-1)) {
-    selection[j] = sum(s.all == j) / (nsim_per_cluster * nCore)
+    selection[j] = sum(s.all == j) / nSim_actual
   }
-  o$selection = selection
   
-  o$ssr = sum(newss.all) / (nsim_per_cluster * nCore)
+  o$ssr = sum(newss.all) / nSim_actual
+  #o$s=s
+
   
   # Stop the cluster
   parallel::stopCluster(cl)
