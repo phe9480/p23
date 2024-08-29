@@ -53,7 +53,7 @@
 #' when the observed HR > 0.8.
 #'
 #' #Dose selection decision is NOT based on ORR.
-#' simu.power.p23.ssr.parallel(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9, 9, 9, 9), 
+#' simu.power.p23.ssr.parallel(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9, 9, 9, 9), 
 #' orr = NULL, rho = NULL, dose_selection_endpoint = "not ORR",
 #' ssr_HR_threshold = 0.8, events_increase = 30,
 #' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
@@ -288,7 +288,7 @@ simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 
   
   o$ssr = sum(newss.all) / nSim_actual
   #o$s=s
-  o$ssr.all = newss.all
+  #o$ssr.all = newss.all
 
   
   # Stop the cluster
