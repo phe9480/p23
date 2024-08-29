@@ -30,7 +30,7 @@ simu.power.p23.ssr.parallel(
   multiplicity.method = "simes",
   method = "Independent Incremental",
   nCore = NULL,
-  seed = 123
+  seeds = 123
 )
 }
 \arguments{

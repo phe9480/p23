@@ -107,9 +107,9 @@ simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 
                                         Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
                                         enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), 
                                         alpha=0.025, sf=gsDesign::sfLDOF, multiplicity.method="simes",
-                                        method = "Independent Incremental", nCore=NULL, seed=123){
+                                        method = "Independent Incremental", nCore=NULL, seeds=123){
   
-  simu.power.p23.ssr.onecore <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
+  simu.power.p23.ssr.onecore <- function(seed=123, nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
                                          orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, 
                                          dose_selection_endpoint = "ORR",
                                          ssr_HR_threshold = 0.8, events_increase = 30, 
@@ -118,6 +118,8 @@ simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 
                                          enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), 
                                          alpha=0.025, sf=gsDesign::sfLDOF, multiplicity.method="simes",
                                          method = "Independent Incremental"){
+    
+    set.seed(seed)
     
     #Number of analyses in stage 2
     K = length(targetEvents2)
@@ -219,8 +221,8 @@ simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 
   
   nsim_per_cluster = ceiling(nSim/nCore)
   
-  if(length(seed==1)) seed=(1:nCore)*seed
-  else if(length(seed)!=nCore) stop("The number of seeds should match the number of cores")
+  if(length(seeds==1)) seeds=(1:nCore)*seeds
+  else if(length(seeds)!=nCore) stop("The number of seeds should match the number of cores")
   
   
   #Number of analyses in stage 2
@@ -233,7 +235,7 @@ simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 
   n.arms = length(n1)
   
   # Use parLapply to run in parallel
-  results <- parallel::parLapply(cl, seed, fun = simu.power.p23.ssr.onecore,
+  results <- parallel::parLapply(cl, seeds, fun = simu.power.p23.ssr.onecore,
                                  nSim=nsim_per_cluster,
                                  n1 = n1, n2 = n2, m = m, 
                                  orr = orr, rho = rho, dose_selection_endpoint = dose_selection_endpoint,
@@ -286,6 +288,7 @@ simu.power.p23.ssr.parallel <- function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 
   
   o$ssr = sum(newss.all) / nSim_actual
   #o$s=s
+  o$ssr.all = newss.all
 
   
   # Stop the cluster
