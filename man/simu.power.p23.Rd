@@ -32,11 +32,11 @@ simu.power.p23(
 \arguments{
 \item{nSim}{Number of simulated trials}
 
-\item{n1}{Stage 1 sample size of each dose and control arm. length(n1) must be number of arms.}
+\item{n1}{Stage 1 sample size of each dose and control arm. length(n1) must be number of arms. The last component is control.}
 
-\item{n2}{Stage 2 Sample size of the selected dose and control arm. length(n2) must be 2.}
+\item{n2}{Stage 2 Sample size of the selected dose and control arm. length(n2) must be 2. The second component is control.}
 
-\item{m}{Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1)}
+\item{m}{Median survival time for each arm (dose 1, dose 2, ..., control). length(m) must be equal to length(n1). The last component in m is control.}
 
 \item{orr}{ORR for each arm. length(orr) = length(m).}
 
@@ -120,6 +120,11 @@ enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF,
 alpha=0.025, method = "Mixture")
 
 simu.power.p23(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
+orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
+alpha=0.025, multiplicity.method = "dunnett", method = "Disjoint Subjects")
+
+
+simu.power.p23(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 12, 9), 
 orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
 alpha=0.025, multiplicity.method = "dunnett", method = "Disjoint Subjects")
 
