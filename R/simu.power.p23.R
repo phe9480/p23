@@ -89,7 +89,7 @@
 #' @importFrom gsDesign gsDesign
 #' @export 
 #' 
-simu.power.p23 = function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
+simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
                           orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
                           Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
                           Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
@@ -164,7 +164,7 @@ simu.power.p23 = function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9
     best.dose = (1:(n.arms-1))[doses.m == max.m]
     if (sum(s == best.dose) > 0) {
       correct.selection = (1:nSim)[s == best.dose]
-      correct.comb.z = comb.z[correct.selection, ]
+      correct.comb.z = matrix(comb.z[correct.selection, ], ncol = K)
       generalized.pow=gsd.power(z = correct.comb.z, bd.z=bd.z) * length(correct.selection) / nSim
     } else {generalized.pow = 0}
    

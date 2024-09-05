@@ -247,7 +247,7 @@ simu.power.p23.ssr = function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2), m = c
         generalized.pow[1] = sum(correct.DS.cum.rej1)/nSim
         generalized.pow[2] = sum(correct.DS.cum.rej2)/nSim
       } else {
-        correct.comb.z = comb.z[correct.selection, ]
+        correct.comb.z = matrix(comb.z[correct.selection, ], ncol = K)
         generalized.pow=gsd.power(z = correct.comb.z, bd.z=bd.z) * length(correct.selection) / nSim
       }
     } else {generalized.pow = 0}
