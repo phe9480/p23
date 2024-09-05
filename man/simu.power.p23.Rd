@@ -5,7 +5,7 @@
 \title{Phase 2/3 Inferential Seamless Design Power calculation by simulations}
 \usage{
 simu.power.p23(
-  nSim = 100,
+  nSim = 10,
   n1 = rep(50, 4),
   n2 = rep(200, 2),
   m = c(9, 9, 9, 9),
