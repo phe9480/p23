@@ -93,12 +93,22 @@
 #' sf=gsDesign::sfLDOF, alpha=0.025, multiplicity.method = "dunnett", 
 #' method = "Disjoint Subjects")
 #' 
+#' o=simu.power.p23.ssr(nSim=100, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 12, 9, 9), 
+#' orr = c(0.25, 0.3, 0.2, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+#' ssr_HR_threshold = 0.8, events_increase = 30,
+#' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
+#' A1 = 12,Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
+#' A2 = 12,enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), 
+#' sf=gsDesign::sfLDOF, alpha=0.025, multiplicity.method = "dunnett", 
+#' method = "Disjoint Subjects")
+#' 
+#' 
 #' @importFrom gsDesign gsDesign
 #' @importFrom stats uniroot
 #' 
 #' @export 
 #' 
-simu.power.p23.ssr = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
+simu.power.p23.ssr = function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
                           orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, 
                           dose_selection_endpoint = "ORR",
                           ssr_HR_threshold = 0.8, events_increase = 30, 
@@ -217,7 +227,36 @@ simu.power.p23.ssr = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(
   o$selection = selection
   o$ssr = sum(new.ss) / nSim
   #o$s=s
+  #Calculate the generalized power by simulation, defined as the correct selection of the best dose in OS and H0 rejected
+  
+  #Best dose by design
+  doses.m = m[1:(n.arms-1)]
+  max.m = max(doses.m)
+  
+  if (sum(m == max.m) == 1) {
+    #There is a best dose in OS.
+    best.dose = (1:(n.arms-1))[doses.m == max.m]
+    if (sum(s == best.dose) > 0) {
+      correct.selection = (1:nSim)[s == best.dose]
+      generalized.pow = rep(NA, K)
+    
+      if (method == "Disjoint Subjects") {
+        correct.DS.cum.rej1 = DS.cum.rej1[correct.selection]
+        correct.DS.cum.rej2 = DS.cum.rej2[correct.selection]
+      
+        generalized.pow[1] = sum(correct.DS.cum.rej1)/nSim
+        generalized.pow[2] = sum(correct.DS.cum.rej2)/nSim
+      } else {
+        correct.comb.z = comb.z[correct.selection, ]
+        generalized.pow=gsd.power(z = correct.comb.z, bd.z=bd.z) * length(correct.selection) / nSim
+      }
+    } else {generalized.pow = 0}
+    
+    o$best.dose = best.dose 
+    o$generalized.pow = generalized.pow
+  }
   
   return(o)
 }
+
 

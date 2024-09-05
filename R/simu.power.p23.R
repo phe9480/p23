@@ -72,18 +72,24 @@
 #' alpha=0.025, method = "Mixture")
 #' 
 #' simu.power.p23(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 9, 9), 
-#' orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
+#' orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+#' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
+#' A1 = 12,Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
+#' A2 = 12,enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
 #' alpha=0.025, multiplicity.method = "dunnett", method = "Disjoint Subjects")
 #' 
 #' 
-#' simu.power.p23(nSim=10, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 12, 9), 
-#' orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
+#' simu.power.p23(nSim=1000, n1 = rep(50, 4), n2 = rep(200, 4), m = c(9, 9, 12, 9), 
+#' orr = c(0.25, 0.3, 0.3, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+#' Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
+#' A1 = 12,Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, 
+#' A2 = 12,enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), sf=gsDesign::sfLDOF, 
 #' alpha=0.025, multiplicity.method = "dunnett", method = "Disjoint Subjects")
 #' 
 #' @importFrom gsDesign gsDesign
 #' @export 
 #' 
-simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
+simu.power.p23 = function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
                           orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
                           Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
                           Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
@@ -156,9 +162,13 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
   if (sum(m == max.m) == 1) {
     #There is a best dose in OS.
     best.dose = (1:(n.arms-1))[doses.m == max.m]
-    correct.selection = (1:nSim)[s == best.dose]
-    correct.comb.z = comb.z[correct.selection, ]
-    generalized.pow=gsd.power(z = correct.comb.z, bd.z=bd.z) * length(correct.selection) / nSim
+    if (sum(s == best.dose) > 0) {
+      correct.selection = (1:nSim)[s == best.dose]
+      correct.comb.z = comb.z[correct.selection, ]
+      generalized.pow=gsd.power(z = correct.comb.z, bd.z=bd.z) * length(correct.selection) / nSim
+    } else {generalized.pow = 0}
+   
+    o$best.dose = best.dose 
     o$generalized.pow = generalized.pow
   }
   #o$s=s
