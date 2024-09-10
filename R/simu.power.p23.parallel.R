@@ -88,13 +88,13 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
                                     method = "Independent Incremental", nCore=NULL, seed=123){
   
   
-  simu.power.p23.onecore = function(seed, nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
-                                    orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
-                                    Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
-                                    Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
-                                    enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), 
-                                    alpha=0.025, sf=gsDesign::sfLDOF, multiplicity.method="simes",
-                                    method = "Independent Incremental", bd.z=NULL){
+  simu.power.p23.onecore <- function(seed, nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9, 9, 9), 
+                            orr = c(0.25, 0.3, 0.4, 0.2), rho = 0.7, dose_selection_endpoint = "ORR",
+                            Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
+                            Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
+                            enrollment.hold=4, DCO1 = 16, targetEvents2=c(300, 380), 
+                            alpha=0.025, sf=gsDesign::sfLDOF, multiplicity.method="simes",
+                            method = "Independent Incremental", bd.z=NULL){
     
     set.seed(seed)
     #Number of analyses in stage 2
@@ -102,13 +102,6 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
     
     #Number of arms
     n.arms = length(n1)
-    
-    #rejection boundary by traditional GSD
-    if(is.null(bd.z)){
-      if (K == 1) {bd.z = qnorm(1-alpha)} else {
-        bd.z = gsDesign::gsDesign(k=K,alpha=alpha,timing=targetEvents2/targetEvents2[K],sfu=sf, test.type=1)$upper$bound
-      }
-    }
     
     
     #Combination Z values
@@ -140,24 +133,12 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
       }
     }
     
-    # cum.pow=gsd.power(z = comb.z, bd.z=bd.z)
-    # 
-    # o = list()
-    # o$cum.pow = cum.pow
-    # o$bd.z = bd.z
+  
     
-    selection = rep(NA, n.arms-1)
-    for (j in 1:(n.arms-1)) {
-      selection[j] = sum(s == j) 
-    }
-    # o$selection = selection
-    # o$s=s
-    
-    re = list(comb.z=comb.z, selection=selection, s=s)
+    re = list(comb.z=comb.z, s=s)
     
     return(re)
   }
-  
   
   ## Start simulation 
   if(is.null(nCore)){
@@ -176,10 +157,15 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
   #Number of analyses in stage 2
   K = length(targetEvents2)
   
+  #Number of arms
+  n.arms = length(n1)
   
+  
+  #rejection boundary by traditional GSD
   if (K == 1) {bd.z = qnorm(1-alpha)} else {
     bd.z = gsDesign::gsDesign(k=K,alpha=alpha,timing=targetEvents2/targetEvents2[K],sfu=sf, test.type=1)$upper$bound
   }
+  
   
   # Use parLapply to run in parallel
   results <- parallel::parLapply(cl, seed, fun = simu.power.p23.onecore,
@@ -193,32 +179,50 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
                                  method = method, bd.z=bd.z
   )
   
+  
+  nSims_actual = (nsim_per_cluster * nCore)
   comb.zall <- c()
-  select.all <- c()
   s.all <- c()
   for( i in 1:length(results)){
     comb.zall = rbind(comb.zall, results[[i]]$comb.z)
-    select.all = rbind(select.all, results[[i]]$selection)
     s.all <- c(s.all, results[[i]]$s)
   }
   
+  
+  
   cum.pow=gsd.power(z = comb.zall, bd.z=bd.z)
+  
+  selection = rep(NA, n.arms-1)
+  for (j in 1:(n.arms-1)) {
+    selection[j] = sum(s.all == j) / nSims_actual
+  }
   
   o = list()
   o$cum.pow = cum.pow
   o$bd.z = bd.z
-  
-  #o$selection = colSums(select.all)/nSim
   o$multiplicity.method = multiplicity.method
   o$method = method
-  #o$s=s.all
   
-  n.arms = length(n1)
-  selection = rep(NA, n.arms-1)
-  for (j in 1:(n.arms-1)) {
-    selection[j] = sum(s.all == j) / (nsim_per_cluster * nCore)
-  }
   o$selection = selection
+  
+  #Calculate the generalized power by simulation, defined as the correct selection of the best dose in OS and H0 rejected
+  
+  #Best dose by design
+  doses.m = m[1:(n.arms-1)]
+  max.m = max(doses.m)
+  
+  if (sum(m == max.m) == 1) {
+    #There is a best dose in OS.
+    best.dose = (1:(n.arms-1))[doses.m == max.m]
+    if (sum(s.all == best.dose) > 0) {
+      correct.selection = (1:nSims_actual)[s.all == best.dose]
+      correct.comb.z = matrix(comb.zall[correct.selection, ], ncol = K)
+      generalized.pow=gsd.power(z = correct.comb.z, bd.z=bd.z) * length(correct.selection) / nSim
+    } else {generalized.pow = 0}
+    
+    o$best.dose = best.dose 
+    o$generalized.pow = generalized.pow
+  }
   
   # Stop the cluster
   parallel::stopCluster(cl)
