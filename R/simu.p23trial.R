@@ -100,7 +100,7 @@ simu.p23trial = function(n1 = c(50, 50, 50, 50), n2 = c(200, 200, 200, 200), m =
   dat2 = list(NULL) #control arm is the last one 
   for (j in 1:n.arms){
     if (dose_selection_endpoint == "ORR"){
-      dat2[[j]] = simu.single.arm.hz(n=n2[j], m=m[j], orr = orr[j], rho = rho, Lambda=Lambda2, A=A1, drop=0, DCO=Inf)[[1]]
+      dat2[[j]] = simu.single.arm.hz(n=n2[j], m=m[j], orr = orr[j], rho = rho, Lambda=Lambda2, A=A2, drop=0, DCO=Inf)[[1]]
     } else {
       dat2[[j]] = simu.single.arm(n=n2[j], m=m[j], Lambda=Lambda2, A=A2, drop=0, DCO=Inf)[[1]]
     } 
