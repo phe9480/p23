@@ -71,7 +71,7 @@
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 #' enrollment.hold=4)
 #' 
-#' sel = select.dose.p23 (data=p23trial, DCO1=16)
+#' sel = select_dose_p23(data = p23trial, DCO1 = 16)
 #' 
 #' o=conduct.p23(data=p23trial, DCO1=16, targetEvents = c(300, 380), method = "Independent Incremental")
 #' 

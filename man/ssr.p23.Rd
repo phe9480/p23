@@ -48,7 +48,7 @@ Lambda1 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A1 = 12,
 Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 enrollment.hold=4)
 
-sel = select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR")
+sel = select_dose_p23(data = p23trial, DCO1 = 16, dose_selection_endpoint = "not ORR")
 
 #Independent incremental; dose not selected by ORR
 ssr.p23(data=p23trial, ssr_HR_threshold = 0.8, events_increase = 30, 

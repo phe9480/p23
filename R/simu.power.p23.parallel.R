@@ -162,15 +162,14 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
       # now determined by actual events YC ======================================
       if (K == 1) {bd.z[i] = qnorm(1-alpha)} else {
         if(o$method == "Disjoint Subjects"){
-          actual.time[i,] = o$actualTime
           if(boundary.recal == TRUE){
             corr.z = o$w[1]*o$w[2]*sqrt(o$actualEventsS1[1]/o$actualEventsS1[K]) + 
               sqrt(1-o$w[1]^2)*sqrt(1-o$w[2]^2)*sqrt((o$actualEvents[1]-o$actualEventsS1[1])/(o$actualEvents[K]-o$actualEventsS1[K]))
             
-            bd.z[i,] = gsDesign::gsDesign(k=K,alpha=alpha,
-                                          sfu=sf, test.type=1,
-                                          n.I = c(o$actualEvents[1], o$actualEvents[1]/corr.z^2),
-                                          maxn.IPlan = targetEvents2[K])$upper$bound
+            c1 <- qnorm(1 - sf(alpha, o$actualEvents[1]/targetEvents2[K])$spend)
+            c2 <- find_c2(rho = corr.z, c1 = c1, alpha = alpha)
+            bd.z[i,] <- c(c1, c2)
+            
           }else{#rejection boundary by traditional GSD
             bd.z[i,] = gsDesign::gsDesign(k=K,alpha=alpha,timing=o$actualEvents/o$actualEvents[K],sfu=sf, test.type=1)$upper$bound
           }
@@ -185,6 +184,7 @@ simu.power.p23.parallel <- function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2),
           comb.z[i, j] = oj$comb.z; 
         }
       } else if (o$method == "Disjoint Subjects") {
+        actual.time[i,] = o$actualTime
         for (j in 1:K){
           cr.j = build_cor_from_events(o$n.events_trt[j,], o$n.events_ctrl[j,])
           oj = comb.pvalue.p23(z1=matrix(o$z1[j, ], nrow=1),  z2 = o$z2[,j], bd.z=bd.z[i,j], w=o$w[,j], selected.dose = n.arms-1, method=multiplicity.method, 

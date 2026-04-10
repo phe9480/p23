@@ -150,7 +150,7 @@ simu.power.p23.ssr = function(nSim=100, n1 = rep(50, 4), n2 = rep(200, 2), m = c
                          Lambda1 = Lambda1, A1 = A1, 
                          Lambda2 = Lambda2, A2 = A2, enrollment.hold=enrollment.hold)
     #dose selection
-    sel = select.dose.p23 (data=p23i, DCO1=DCO1, dose_selection_endpoint = dose_selection_endpoint)
+    sel = select_dose_p23(data = p23i, DCO1 = DCO1, dose_selection_endpoint = dose_selection_endpoint)
     s[i] = sel$s
     
     #SSR

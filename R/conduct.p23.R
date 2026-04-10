@@ -57,7 +57,7 @@
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 #' enrollment.hold=4)
 #' 
-#' select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR")
+#' select_dose_p23(data = p23trial, DCO1 = 16, dose_selection_endpoint = "not ORR")
 #' 
 #' #Independent incremental; dose not selected by ORR
 #' conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "not ORR",
@@ -86,7 +86,7 @@
 #' Lambda2 = function(t){(t/12)*as.numeric(t<= 12) + as.numeric(t > 12)}, A2 = 12,
 #' enrollment.hold=4)
 #' 
-#' sel=select.dose.p23 (data=p23trial, DCO1=16, dose_selection_endpoint = "ORR")
+#' sel = select_dose_p23(data = p23trial, DCO1 = 16, dose_selection_endpoint = "ORR")
 #' 
 #' #Independent Incremental, dose selected by ORR
 #' conduct.p23(data=p23trial, DCO1=16, dose_selection_endpoint = "ORR",
@@ -112,7 +112,7 @@ conduct.p23 = function(data=NULL, DCO1=16, targetEvents2 = c(300, 380), dose_sel
                        method = "Independent Incremental", multiplicity.method="simes", e1=NULL, ORRdiff=0){
 
   #1. Dose selection  
-  sel = select.dose.p23 (data=data, DCO1=DCO1, dose_selection_endpoint = dose_selection_endpoint, ORRdiff=ORRdiff)
+  sel = select_dose_p23(data = data, DCO1 = DCO1, dose_selection_endpoint = dose_selection_endpoint, ORRdiff = ORRdiff)
   s=sel$s
 
   

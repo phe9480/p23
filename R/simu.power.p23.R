@@ -117,7 +117,7 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
   #Combination Z values
   comb.z = bd.z = matrix(NA, nrow=nSim, ncol=K)
   s = rep(NA, nSim) #selected dose
-  
+  actual.time = matrix(NA, nrow=nSim, ncol = K)
   n2 = c(rep(n2[1], n.arms-1), n2[2])
   
   # calculate pre-specified weights YC ============================
@@ -145,7 +145,7 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
                   multiplicity.method=multiplicity.method,
                   e1=e1, ORRdiff=ORRdiff)
     s[i] = o$s
-    
+    actual.time[i,] = o$actualTime
     if(o$method=="NA"){ # deal with IA exceeds FA YC =============================
       comb.z[i,]=c(NA, o$z) # must be before gsDesign function in calculating the boundary bd.z!
       next
@@ -157,10 +157,10 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
         corr.z = o$w[1]*o$w[2]*sqrt(o$actualEventsS1[1]/o$actualEventsS1[K]) + 
           sqrt(1-o$w[1]^2)*sqrt(1-o$w[2]^2)*sqrt((o$actualEvents[1]-o$actualEventsS1[1])/(o$actualEvents[K]-o$actualEventsS1[K]))
         
-        bd.z[i,] = gsDesign::gsDesign(k=K,alpha=alpha,
-                                      sfu=sf, test.type=1,
-                                      n.I = c(o$actualEvents[1], o$actualEvents[1]/corr.z^2),
-                                      maxn.IPlan = targetEvents2[K])$upper$bound
+        c1 <- qnorm(1 - sf(alpha, o$actualEvents[1]/targetEvents2[K])$spend)
+        c2 <- find_c2(rho = corr.z, c1 = c1, alpha = alpha)
+        bd.z[i,] <- c(c1, c2)
+        
       }else{
         bd.z[i,] = gsDesign::gsDesign(k=K,alpha=alpha,timing=o$actualEvents/o$actualEvents[K],sfu=sf, test.type=1)$upper$bound
       }
@@ -196,6 +196,7 @@ simu.power.p23 = function(nSim=10, n1 = rep(50, 4), n2 = rep(200, 2), m = c(9,9,
   o$bd.z = bd.z[1:5,]
   o$multiplicity.method = multiplicity.method
   o$method = method
+  o$actual.time = colMeans(actual.time, na.rm=T)
   
   o$selection = selection
   
