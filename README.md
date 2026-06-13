@@ -7,12 +7,14 @@ Instructions to download and install
 
 install.packages("devtools")
 
-#Install package p23
+#Install package nphsim
+devtools::install_github("keaven/nphsim")
 
+#Install package p23
 devtools::install_github("chnyuxuan/p23")
 
 #To browse the package functions, type
 
 help(package="p23")
 
-Dependent R Packages:
+Dependent R Packages: nphsim
